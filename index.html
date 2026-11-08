@@ -94,17 +94,43 @@
 
     <!-- Score Input Section -->
     <section id="inputSection" class="bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl flex flex-col gap-4">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center flex-wrap gap-2">
         <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
           <i class="fa-solid fa-pen-to-square text-indigo-400"></i> Saisie de la manche
         </h2>
         
-        <label class="flex items-center gap-2 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
-          <input type="checkbox" id="isRouleRound" class="accent-indigo-500 rounded">
-          <span class="text-xs text-slate-300 font-medium">Manche Roulé</span>
-        </label>
+        <div class="flex items-center gap-2">
+          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
+            <input type="checkbox" id="isRouleRound" onchange="updateScorePreview()" class="accent-indigo-500 rounded">
+            <span class="text-xs text-slate-300 font-medium">Roulé (x2)</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
+            <input type="checkbox" id="isBuckeRound" onchange="updateScorePreview()" class="accent-amber-500 rounded">
+            <span class="text-xs text-slate-300 font-medium">Bucké (x2)</span>
+          </label>
+        </div>
       </div>
 
+      <!-- Tie Carryover Banner -->
+      <div id="tieBanner" class="hidden bg-indigo-500/20 border border-indigo-500/40 text-indigo-200 px-3 py-1.5 rounded-xl text-xs flex items-center justify-between">
+        <span class="font-semibold"><i class="fa-solid fa-bolt text-indigo-400 mr-1"></i> Égalité manche précédente</span>
+        <span class="bg-indigo-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">Points x2</span>
+      </div>
+
+      <!-- Preview Score Addition (Positioned Above Slider) -->
+      <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3 text-center">
+        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+          <span>Impact sur le score final :</span>
+          <span id="multiplierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-300 border border-slate-700">x1</span>
+        </div>
+        <div class="flex justify-around items-center font-bold text-sm">
+          <div id="previewNetA" class="text-slate-400">Nous : +0 pt</div>
+          <div class="text-slate-600">|</div>
+          <div id="previewNetB" class="text-slate-400">Eux : +0 pt</div>
+        </div>
+      </div>
+
+      <!-- Slider & Controls (Left = Nous, Right = Eux) -->
       <div class="bg-slate-900 p-3 rounded-xl border border-slate-700/60">
         <div class="flex justify-between items-center mb-2">
           <span class="text-xs font-semibold text-indigo-300" id="teamALabelScore">Nous: 30 pts</span>
@@ -114,29 +140,23 @@
         <input type="range" id="rawScoreSlider" min="0" max="60" value="30" class="w-full bg-slate-700 h-2 rounded-lg appearance-none cursor-pointer">
 
         <div class="flex justify-between items-center mt-3">
+          <!-- Left = Points for Nous -->
           <div class="flex gap-1">
-            <button onclick="adjustScore(-5)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">-5</button>
-            <button onclick="adjustScore(-1)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">-1</button>
+            <button onclick="adjustScoreForNous(5)" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+5 Nous</button>
+            <button onclick="adjustScoreForNous(1)" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+1</button>
           </div>
           
-          <button onclick="setScore(30)" class="text-xs text-slate-400 underline font-medium">Égalité (30-30)</button>
+          <button onclick="setScoreForNous(30)" class="text-xs text-slate-400 underline font-medium">Égalité (30-30)</button>
 
+          <!-- Right = Points for Eux -->
           <div class="flex gap-1">
-            <button onclick="adjustScore(1)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+1</button>
-            <button onclick="adjustScore(5)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+5</button>
+            <button onclick="adjustScoreForNous(-1)" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+1</button>
+            <button onclick="adjustScoreForNous(-5)" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+5 Eux</button>
           </div>
         </div>
       </div>
 
-      <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3 text-center">
-        <span class="text-xs text-slate-400 block mb-1">Impact sur le score :</span>
-        <div class="flex justify-around items-center font-bold text-sm">
-          <div id="previewNetA" class="text-slate-400">Nous : +0 pt</div>
-          <div class="text-slate-600">|</div>
-          <div id="previewNetB" class="text-slate-400">Eux : +0 pt</div>
-        </div>
-      </div>
-
+      <!-- Validation Button -->
       <button onclick="addRound()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-base">
         <i class="fa-solid fa-plus-circle"></i> Valider la manche
       </button>
@@ -244,6 +264,7 @@
     let rounds = [];
     let roulesState = { A: [false, false], B: [false, false] };
     let dealerOrder = [];
+    let isPreviousTie = false;
     const maxRounds = 12;
     let modalCallback = null;
 
@@ -252,13 +273,16 @@
     const teamBLabelScore = document.getElementById('teamBLabelScore');
     const previewNetA = document.getElementById('previewNetA');
     const previewNetB = document.getElementById('previewNetB');
+    const multiplierBadge = document.getElementById('multiplierBadge');
     const teamAScoreEl = document.getElementById('teamAScore');
     const teamBScoreEl = document.getElementById('teamBScore');
     const currentRoundDisplay = document.getElementById('currentRoundDisplay');
     const historyList = document.getElementById('historyList');
     const undoBtn = document.getElementById('undoBtn');
     const isRouleRound = document.getElementById('isRouleRound');
+    const isBuckeRound = document.getElementById('isBuckeRound');
     const rouleWarningBanner = document.getElementById('rouleWarningBanner');
+    const tieBanner = document.getElementById('tieBanner');
 
     rawScoreSlider.addEventListener('input', updateScorePreview);
 
@@ -349,6 +373,7 @@
 
       renderRouleBadges();
       checkRouleWarnings();
+      updateScorePreview();
     }
 
     function renderRouleBadges() {
@@ -370,25 +395,47 @@
       });
     }
 
-    function adjustScore(delta) {
-      setScore(parseInt(rawScoreSlider.value) + delta);
+    // Slider logic inverted: Left = Nous (score 60), Right = Eux (score 0)
+    function adjustScoreForNous(delta) {
+      let currentVal = parseInt(rawScoreSlider.value);
+      setScoreForNous(currentVal + delta);
     }
 
-    function setScore(val) {
+    function setScoreForNous(val) {
       val = Math.max(0, Math.min(60, val));
       rawScoreSlider.value = val;
       updateScorePreview();
     }
 
+    function getMultiplier() {
+      let mult = 1;
+      if (isRouleRound.checked) mult *= 2;
+      if (isBuckeRound.checked) mult *= 2;
+      if (isPreviousTie) mult *= 2;
+      return mult;
+    }
+
     function updateScorePreview() {
+      // rawScoreSlider: 60 = All for Nous, 0 = All for Eux
       const scoreA = parseInt(rawScoreSlider.value);
       const scoreB = 60 - scoreA;
 
       teamALabelScore.textContent = `Nous: ${scoreA} pts`;
       teamBLabelScore.textContent = `Eux: ${scoreB} pts`;
 
-      let netA = scoreA > 30 ? scoreA - 30 : 0;
-      let netB = scoreB > 30 ? scoreB - 30 : 0;
+      let baseNetA = scoreA > 30 ? scoreA - 30 : 0;
+      let baseNetB = scoreB > 30 ? scoreB - 30 : 0;
+
+      const mult = getMultiplier();
+      const netA = baseNetA * mult;
+      const netB = baseNetB * mult;
+
+      multiplierBadge.textContent = `x${mult}`;
+      if (mult > 1) {
+        multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40";
+      } else {
+        multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-300 border border-slate-700";
+      }
 
       previewNetA.textContent = `Nous : +${netA} pt${netA > 1 ? 's' : ''}`;
       previewNetA.className = netA > 0 ? "text-indigo-400 font-bold" : "text-slate-400";
@@ -403,14 +450,32 @@
       const scoreA = parseInt(rawScoreSlider.value);
       const scoreB = 60 - scoreA;
       const isRoule = isRouleRound.checked;
+      const isBucke = isBuckeRound.checked;
+      const wasTieCarryover = isPreviousTie;
 
-      let netA = scoreA > 30 ? scoreA - 30 : 0;
-      let netB = scoreB > 30 ? scoreB - 30 : 0;
+      const mult = getMultiplier();
+      let netA = (scoreA > 30 ? scoreA - 30 : 0) * mult;
+      let netB = (scoreB > 30 ? scoreB - 30 : 0) * mult;
 
-      rounds.push({ scoreA, scoreB, netA, netB, isRoule });
+      // Check if current round is a tie (30-30)
+      const isTieRound = (scoreA === 30 && scoreB === 30);
+      isPreviousTie = isTieRound;
 
+      rounds.push({ 
+        scoreA, 
+        scoreB, 
+        netA, 
+        netB, 
+        isRoule, 
+        isBucke, 
+        wasTieCarryover,
+        mult 
+      });
+
+      // Reset controls
       rawScoreSlider.value = 30;
       isRouleRound.checked = false;
+      isBuckeRound.checked = false;
 
       updateUI();
 
@@ -420,6 +485,15 @@
     function undoLastRound() {
       if (rounds.length === 0) return;
       rounds.pop();
+      
+      // Re-evaluate tie carryover state
+      if (rounds.length > 0) {
+        const last = rounds[rounds.length - 1];
+        isPreviousTie = (last.scoreA === 30 && last.scoreB === 30);
+      } else {
+        isPreviousTie = false;
+      }
+
       document.getElementById('gameOverSection').classList.add('hidden');
       document.getElementById('inputSection').classList.remove('hidden');
       updateUI();
@@ -435,16 +509,26 @@
       currentRoundDisplay.textContent = Math.min(rounds.length + 1, maxRounds);
       undoBtn.disabled = rounds.length === 0;
 
+      // Tie Carryover Banner Display
+      if (isPreviousTie) {
+        tieBanner.classList.remove('hidden');
+      } else {
+        tieBanner.classList.add('hidden');
+      }
+
       if (rounds.length === 0) {
         historyList.innerHTML = '<div class="text-center text-xs text-slate-500 py-4">Aucune manche enregistrée pour le moment.</div>';
       } else {
         historyList.innerHTML = rounds.map((r, i) => `
           <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center text-xs">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
               <span class="font-bold text-slate-500">M${i+1}</span>
-              ${r.isRoule ? '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px] font-semibold">Roulé</span>' : ''}
+              ${r.isRoule ? '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Roulé</span>' : ''}
+              ${r.isBucke ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Bucké</span>' : ''}
+              ${r.wasTieCarryover ? '<span class="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">x2 Égalité</span>' : ''}
+              ${r.mult > 1 ? `<span class="text-[9px] font-bold text-slate-400">(x${r.mult})</span>` : ''}
             </div>
-            <div class="flex items-center gap-4 font-bold">
+            <div class="flex items-center gap-4 font-bold shrink-0">
               <span class="${r.netA > 0 ? 'text-indigo-400 font-extrabold' : 'text-slate-400'}">+${r.netA} <span class="text-[10px] font-normal text-slate-500">(${r.scoreA})</span></span>
               <span class="text-slate-600">-</span>
               <span class="${r.netB > 0 ? 'text-emerald-400 font-extrabold' : 'text-slate-400'}">+${r.netB} <span class="text-[10px] font-normal text-slate-500">(${r.scoreB})</span></span>
@@ -494,6 +578,7 @@
       rounds = [];
       roulesState = { A: [false, false], B: [false, false] };
       dealerOrder = [];
+      isPreviousTie = false;
       updateDealerLabels();
       renderRouleBadges();
       document.getElementById('gameOverSection').classList.add('hidden');
