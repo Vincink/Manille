@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Compteur Manille (Base 60)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body { touch-action: manipulation; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 28px;
+      width: 28px;
+      border-radius: 50%;
+      background: #4F46E5;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-12 flex flex-col font-sans select-none">
+
+  <!-- Header & Match Info -->
+  <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-20 shadow-md">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-playing-cards text-indigo-400 text-xl"></i>
+        <h1 class="font-bold text-lg text-white">Manille <span class="text-xs text-indigo-400 font-normal">Base 60</span></h1>
+      </div>
+      
+      <!-- Counter Rounds -->
+      <div class="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+        <span class="text-slate-400">Manche :</span>
+        <span id="currentRoundDisplay" class="text-indigo-400 font-bold">1</span> / 12
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto w-full p-4 flex-1 flex flex-col gap-4">
+    
+    <!-- Warning Banner for Forced Roulés -->
+    <div id="rouleWarningBanner" class="hidden bg-amber-500/20 border border-amber-500/50 text-amber-200 p-3 rounded-xl text-xs flex items-center gap-3">
+      <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>
+      <div>
+        <span class="font-bold">Attention !</span> Il reste des "Roulés" obligatoires à effectuer avant la fin de la 12ème manche.
+      </div>
+    </div>
+
+    <!-- Main Scoreboard -->
+    <section class="grid grid-cols-2 gap-3 bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl">
+      <!-- Team A -->
+      <div class="flex flex-col items-center p-2 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
+        <input type="text" id="teamAName" value="Équipe 1" class="bg-transparent text-center font-bold text-slate-300 text-sm focus:outline-none focus:text-indigo-400 w-full mb-1">
+        <div id="teamAScore" class="text-4xl font-extrabold text-indigo-400 my-1">0</div>
+        <div class="text-xs text-slate-400 mb-2">points nets</div>
+        
+        <!-- Roulé Badges Team A -->
+        <div class="flex gap-1">
+          <button onclick="toggleRoule('A', 1)" id="badgeA1" class="text-[10px] px-2 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all">
+            Roulé 1 <i class="fa-solid fa-check hidden text-emerald-400"></i>
+          </button>
+          <button onclick="toggleRoule('A', 2)" id="badgeA2" class="text-[10px] px-2 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all">
+            Roulé 2 <i class="fa-solid fa-check hidden text-emerald-400"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Team B -->
+      <div class="flex flex-col items-center p-2 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
+        <input type="text" id="teamBName" value="Équipe 2" class="bg-transparent text-center font-bold text-slate-300 text-sm focus:outline-none focus:text-indigo-400 w-full mb-1">
+        <div id="teamBScore" class="text-4xl font-extrabold text-emerald-400 my-1">0</div>
+        <div class="text-xs text-slate-400 mb-2">points nets</div>
+
+        <!-- Roulé Badges Team B -->
+        <div class="flex gap-1">
+          <button onclick="toggleRoule('B', 1)" id="badgeB1" class="text-[10px] px-2 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all">
+            Roulé 1 <i class="fa-solid fa-check hidden text-emerald-400"></i>
+          </button>
+          <button onclick="toggleRoule('B', 2)" id="badgeB2" class="text-[10px] px-2 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all">
+            Roulé 2 <i class="fa-solid fa-check hidden text-emerald-400"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Score Input Section -->
+    <section id="inputSection" class="bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl flex flex-col gap-4">
+      <div class="flex justify-between items-center">
+        <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-indigo-400"></i> Saisie du pli (Base 60)
+        </h2>
+        
+        <!-- Toggle Roulé for Current Round -->
+        <label class="flex items-center gap-2 cursor-pointer bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700">
+          <input type="checkbox" id="isRouleRound" class="accent-indigo-500 rounded">
+          <span class="text-xs text-slate-300 font-medium">Manche Roulé</span>
+        </label>
+      </div>
+
+      <!-- Raw Score Selector -->
+      <div class="bg-slate-900 p-3 rounded-xl border border-slate-700/60">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-semibold text-indigo-300" id="teamALabelScore">Équipe 1: 30 pts</span>
+          <span class="text-xs font-semibold text-emerald-300" id="teamBLabelScore">Équipe 2: 30 pts</span>
+        </div>
+
+        <input type="range" id="rawScoreSlider" min="0" max="60" value="30" class="w-full bg-slate-700 h-2 rounded-lg appearance-none cursor-pointer">
+
+        <!-- Stepper Buttons -->
+        <div class="flex justify-between items-center mt-3">
+          <div class="flex gap-1">
+            <button onclick="adjustScore(-5)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">-5</button>
+            <button onclick="adjustScore(-1)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">-1</button>
+          </div>
+          
+          <button onclick="setScore(30)" class="text-xs text-slate-400 underline font-medium">Égalité (30-30)</button>
+
+          <div class="flex gap-1">
+            <button onclick="adjustScore(1)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+1</button>
+            <button onclick="adjustScore(5)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+5</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Score Addition -->
+      <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3 text-center">
+        <span class="text-xs text-slate-400 block mb-1">Impact sur le score final :</span>
+        <div class="flex justify-around items-center font-bold text-sm">
+          <div id="previewNetA" class="text-slate-400">Équipe 1 : +0 pt</div>
+          <div class="text-slate-600">|</div>
+          <div id="previewNetB" class="text-slate-400">Équipe 2 : +0 pt</div>
+        </div>
+      </div>
+
+      <!-- Validation Button -->
+      <button onclick="addRound()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-base">
+        <i class="fa-solid fa-plus-circle"></i> Valider la manche
+      </button>
+    </section>
+
+    <!-- Final Game Over Screen (Hidden by default) -->
+    <section id="gameOverSection" class="hidden bg-slate-800 p-6 rounded-2xl border border-indigo-500/50 text-center flex flex-col items-center gap-4 shadow-2xl">
+      <i class="fa-solid fa-trophy text-amber-400 text-5xl animate-bounce"></i>
+      <h2 class="text-2xl font-black text-white">Partie Terminée !</h2>
+      <p id="winnerText" class="text-indigo-300 font-bold text-lg"></p>
+      <button onclick="resetGame()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl">
+        Nouvelle Partie
+      </button>
+    </section>
+
+    <!-- History -->
+    <section class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex flex-col gap-3">
+      <div class="flex justify-between items-center">
+        <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i> Historique des 12 manches
+        </h2>
+        <button onclick="undoLastRound()" id="undoBtn" class="text-xs text-amber-400 hover:underline disabled:opacity-30 disabled:no-underline" disabled>
+          <i class="fa-solid fa-rotate-left"></i> Annuler
+        </button>
+      </div>
+
+      <div id="historyList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+        <div class="text-center text-xs text-slate-500 py-4">Aucune manche enregistrée pour le moment.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Game State
+    let rounds = [];
+    let roulesState = { A: [false, false], B: [false, false] };
+    const maxRounds = 12;
+
+    // Elements
+    const rawScoreSlider = document.getElementById('rawScoreSlider');
+    const teamALabelScore = document.getElementById('teamALabelScore');
+    const teamBLabelScore = document.getElementById('teamBLabelScore');
+    const previewNetA = document.getElementById('previewNetA');
+    const previewNetB = document.getElementById('previewNetB');
+    const teamAScoreEl = document.getElementById('teamAScore');
+    const teamBScoreEl = document.getElementById('teamBScore');
+    const currentRoundDisplay = document.getElementById('currentRoundDisplay');
+    const historyList = document.getElementById('historyList');
+    const undoBtn = document.getElementById('undoBtn');
+    const isRouleRound = document.getElementById('isRouleRound');
+    const rouleWarningBanner = document.getElementById('rouleWarningBanner');
+
+    // Sync input sliders
+    rawScoreSlider.addEventListener('input', updateScorePreview);
+
+    function adjustScore(delta) {
+      let val = parseInt(rawScoreSlider.value) + delta;
+      setScore(val);
+    }
+
+    function setScore(val) {
+      val = Math.max(0, Math.min(60, val));
+      rawScoreSlider.value = val;
+      updateScorePreview();
+    }
+
+    function updateScorePreview() {
+      const scoreA = parseInt(rawScoreSlider.value);
+      const scoreB = 60 - scoreA;
+      
+      const teamAName = document.getElementById('teamAName').value || 'Équipe 1';
+      const teamBName = document.getElementById('teamBName').value || 'Équipe 2';
+
+      teamALabelScore.textContent = `${teamAName}: ${scoreA} pts`;
+      teamBLabelScore.textContent = `${teamBName}: ${scoreB} pts`;
+
+      // Net Score logic (> 30 only for the winner)
+      let netA = 0;
+      let netB = 0;
+
+      if (scoreA > 30) {
+        netA = scoreA - 30;
+      } else if (scoreB > 30) {
+        netB = scoreB - 30;
+      }
+
+      previewNetA.textContent = `${teamAName} : +${netA} pt${netA > 1 ? 's' : ''}`;
+      previewNetA.className = netA > 0 ? "text-indigo-400 font-bold" : "text-slate-400";
+
+      previewNetB.textContent = `${teamBName} : +${netB} pt${netB > 1 ? 's' : ''}`;
+      previewNetB.className = netB > 0 ? "text-emerald-400 font-bold" : "text-slate-400";
+    }
+
+    function toggleRoule(team, index) {
+      const stateIndex = index - 1;
+      roulesState[team][stateIndex] = !roulesState[team][stateIndex];
+      renderRouleBadges();
+      checkRouleWarnings();
+    }
+
+    function renderRouleBadges() {
+      ['A', 'B'].forEach(team => {
+        [1, 2].forEach(num => {
+          const badge = document.getElementById(`badge${team}${num}`);
+          const icon = badge.querySelector('i');
+          const isDone = roulesState[team][num - 1];
+
+          if (isDone) {
+            badge.className = "text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/50 bg-emerald-500/10 text-emerald-300 font-semibold transition-all";
+            icon.classList.remove('hidden');
+          } else {
+            badge.className = "text-[10px] px-2 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all";
+            icon.classList.add('hidden');
+          }
+        });
+      });
+    }
+
+    function addRound() {
+      if (rounds.length >= maxRounds) return;
+
+      const scoreA = parseInt(rawScoreSlider.value);
+      const scoreB = 60 - scoreA;
+      const isRoule = isRouleRound.checked;
+
+      let netA = scoreA > 30 ? scoreA - 30 : 0;
+      let netB = scoreB > 30 ? scoreB - 30 : 0;
+
+      rounds.push({
+        scoreA,
+        scoreB,
+        netA,
+        netB,
+        isRoule
+      });
+
+      // Reset slider & checkbox
+      rawScoreSlider.value = 30;
+      isRouleRound.checked = false;
+
+      updateUI();
+
+      if (rounds.length === maxRounds) {
+        triggerGameOver();
+      }
+    }
+
+    function undoLastRound() {
+      if (rounds.length === 0) return;
+      rounds.pop();
+      
+      document.getElementById('gameOverSection').classList.add('hidden');
+      document.getElementById('inputSection').classList.remove('hidden');
+      
+      updateUI();
+    }
+
+    function updateUI() {
+      // Calculate Total Net Scores
+      let totalA = rounds.reduce((sum, r) => sum + r.netA, 0);
+      let totalB = rounds.reduce((sum, r) => sum + r.netB, 0);
+
+      teamAScoreEl.textContent = totalA;
+      teamBScoreEl.textContent = totalB;
+
+      currentRoundDisplay.textContent = Math.min(rounds.length + 1, maxRounds);
+      undoBtn.disabled = rounds.length === 0;
+
+      // Update History List
+      if (rounds.length === 0) {
+        historyList.innerHTML = '<div class="text-center text-xs text-slate-500 py-4">Aucune manche enregistrée pour le moment.</div>';
+      } else {
+        historyList.innerHTML = rounds.map((r, i) => `
+          <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center text-xs">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-500">M${i+1}</span>
+              ${r.isRoule ? '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px] font-semibold">Roulé</span>' : ''}
+            </div>
+            <div class="flex items-center gap-4 font-bold">
+              <span class="${r.netA > 0 ? 'text-indigo-400 font-extrabold' : 'text-slate-400'}">+${r.netA} <span class="text-[10px] font-normal text-slate-500">(${r.scoreA})</span></span>
+              <span class="text-slate-600">-</span>
+              <span class="${r.netB > 0 ? 'text-emerald-400 font-extrabold' : 'text-slate-400'}">+${r.netB} <span class="text-[10px] font-normal text-slate-500">(${r.scoreB})</span></span>
+            </div>
+          </div>
+        `).reverse().join('');
+      }
+
+      updateScorePreview();
+      checkRouleWarnings();
+    }
+
+    function checkRouleWarnings() {
+      const roundsLeft = maxRounds - rounds.length;
+      const roulesNeededA = roulesState.A.filter(r => !r).length;
+      const roulesNeededB = roulesState.B.filter(r => !r).length;
+      const totalRoulesNeeded = roulesNeededA + roulesNeededB;
+
+      if (roundsLeft > 0 && totalRoulesNeeded >= roundsLeft) {
+        rouleWarningBanner.classList.remove('hidden');
+      } else {
+        rouleWarningBanner.classList.add('hidden');
+      }
+    }
+
+    function triggerGameOver() {
+      const totalA = rounds.reduce((sum, r) => sum + r.netA, 0);
+      const totalB = rounds.reduce((sum, r) => sum + r.netB, 0);
+      const teamAName = document.getElementById('teamAName').value || 'Équipe 1';
+      const teamBName = document.getElementById('teamBName').value || 'Équipe 2';
+
+      document.getElementById('inputSection').classList.add('hidden');
+      const gameOverEl = document.getElementById('gameOverSection');
+      gameOverEl.classList.remove('hidden');
+
+      const winnerText = document.getElementById('winnerText');
+      if (totalA > totalB) {
+        winnerText.textContent = `Victoire de ${teamAName} (${totalA} - ${totalB})`;
+      } else if (totalB > totalA) {
+        winnerText.textContent = `Victoire de ${teamBName} (${totalB} - ${totalA})`;
+      } else {
+        winnerText.textContent = `Égalité parfaite ! (${totalA} - ${totalB})`;
+      }
+
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+
+    function resetGame() {
+      rounds = [];
+      roulesState = { A: [false, false], B: [false, false] };
+      renderRouleBadges();
+      document.getElementById('gameOverSection').classList.add('hidden');
+      document.getElementById('inputSection').classList.remove('hidden');
+      updateUI();
+    }
+
+    // Init
+    updateScorePreview();
+  </script>
+</body>
+</html>
