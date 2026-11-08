@@ -395,7 +395,6 @@
       });
     }
 
-    // Slider logic inverted: Left = Nous (score 60), Right = Eux (score 0)
     function adjustScoreForNous(delta) {
       let currentVal = parseInt(rawScoreSlider.value);
       setScoreForNous(currentVal + delta);
@@ -407,28 +406,45 @@
       updateScorePreview();
     }
 
+    // Max multiplier capped strictly at x4
     function getMultiplier() {
       let mult = 1;
       if (isRouleRound.checked) mult *= 2;
       if (isBuckeRound.checked) mult *= 2;
       if (isPreviousTie) mult *= 2;
-      return mult;
+      return Math.min(4, mult);
+    }
+
+    function calculateNetPoints(scoreA, scoreB) {
+      const mult = getMultiplier();
+      let netA = 0;
+      let netB = 0;
+      let isCapotA = false;
+      let isCapotB = false;
+
+      // Capot rule: 60 - 0 scores 60 * multiplier
+      if (scoreA === 60) {
+        netA = 60 * mult;
+        isCapotA = true;
+      } else if (scoreB === 60) {
+        netB = 60 * mult;
+        isCapotB = true;
+      } else {
+        netA = scoreA > 30 ? (scoreA - 30) * mult : 0;
+        netB = scoreB > 30 ? (scoreB - 30) * mult : 0;
+      }
+
+      return { netA, netB, mult, isCapotA, isCapotB };
     }
 
     function updateScorePreview() {
-      // rawScoreSlider: 60 = All for Nous, 0 = All for Eux
       const scoreA = parseInt(rawScoreSlider.value);
       const scoreB = 60 - scoreA;
 
       teamALabelScore.textContent = `Nous: ${scoreA} pts`;
       teamBLabelScore.textContent = `Eux: ${scoreB} pts`;
 
-      let baseNetA = scoreA > 30 ? scoreA - 30 : 0;
-      let baseNetB = scoreB > 30 ? scoreB - 30 : 0;
-
-      const mult = getMultiplier();
-      const netA = baseNetA * mult;
-      const netB = baseNetB * mult;
+      const { netA, netB, mult, isCapotA, isCapotB } = calculateNetPoints(scoreA, scoreB);
 
       multiplierBadge.textContent = `x${mult}`;
       if (mult > 1) {
@@ -437,10 +453,10 @@
         multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-300 border border-slate-700";
       }
 
-      previewNetA.textContent = `Nous : +${netA} pt${netA > 1 ? 's' : ''}`;
+      previewNetA.textContent = `Nous : +${netA} pt${netA > 1 ? 's' : ''}${isCapotA ? ' (CAPOT)' : ''}`;
       previewNetA.className = netA > 0 ? "text-indigo-400 font-bold" : "text-slate-400";
 
-      previewNetB.textContent = `Eux : +${netB} pt${netB > 1 ? 's' : ''}`;
+      previewNetB.textContent = `Eux : +${netB} pt${netB > 1 ? 's' : ''}${isCapotB ? ' (CAPOT)' : ''}`;
       previewNetB.className = netB > 0 ? "text-emerald-400 font-bold" : "text-slate-400";
     }
 
@@ -453,11 +469,8 @@
       const isBucke = isBuckeRound.checked;
       const wasTieCarryover = isPreviousTie;
 
-      const mult = getMultiplier();
-      let netA = (scoreA > 30 ? scoreA - 30 : 0) * mult;
-      let netB = (scoreB > 30 ? scoreB - 30 : 0) * mult;
+      const { netA, netB, mult, isCapotA, isCapotB } = calculateNetPoints(scoreA, scoreB);
 
-      // Check if current round is a tie (30-30)
       const isTieRound = (scoreA === 30 && scoreB === 30);
       isPreviousTie = isTieRound;
 
@@ -469,10 +482,10 @@
         isRoule, 
         isBucke, 
         wasTieCarryover,
+        isCapot: isCapotA || isCapotB,
         mult 
       });
 
-      // Reset controls
       rawScoreSlider.value = 30;
       isRouleRound.checked = false;
       isBuckeRound.checked = false;
@@ -486,7 +499,6 @@
       if (rounds.length === 0) return;
       rounds.pop();
       
-      // Re-evaluate tie carryover state
       if (rounds.length > 0) {
         const last = rounds[rounds.length - 1];
         isPreviousTie = (last.scoreA === 30 && last.scoreB === 30);
@@ -509,7 +521,6 @@
       currentRoundDisplay.textContent = Math.min(rounds.length + 1, maxRounds);
       undoBtn.disabled = rounds.length === 0;
 
-      // Tie Carryover Banner Display
       if (isPreviousTie) {
         tieBanner.classList.remove('hidden');
       } else {
@@ -523,6 +534,7 @@
           <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center text-xs">
             <div class="flex items-center gap-1.5 flex-wrap">
               <span class="font-bold text-slate-500">M${i+1}</span>
+              ${r.isCapot ? '<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold">CAPOT</span>' : ''}
               ${r.isRoule ? '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Roulé</span>' : ''}
               ${r.isBucke ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Bucké</span>' : ''}
               ${r.wasTieCarryover ? '<span class="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">x2 Égalité</span>' : ''}
