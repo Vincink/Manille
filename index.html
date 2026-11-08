@@ -43,7 +43,7 @@
     <div id="rouleWarningBanner" class="hidden bg-amber-500/20 border border-amber-500/50 text-amber-200 p-3 rounded-xl text-xs flex items-center gap-3">
       <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>
       <div>
-        <span class="font-bold">Attention !</span> Les manches restantes sont obligatoirement des "Roulés".
+        <span class="font-bold">Attention !</span> <span id="rouleWarningText">Cette manche est obligatoirement un Roulé pour l'équipe qui carté.</span>
       </div>
     </div>
 
@@ -51,7 +51,7 @@
     <section class="bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl flex flex-col gap-3">
       <div class="grid grid-cols-2 gap-3">
         <!-- Team A (Nous) -->
-        <div class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50">
+        <div id="cardTeamA" class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
           <div class="font-black text-indigo-400 text-lg uppercase tracking-wide mb-1">Nous</div>
           <div id="teamAScore" class="text-4xl font-extrabold text-indigo-400 my-1">0</div>
           <div class="text-[11px] text-slate-400 mb-2">points nets</div>
@@ -67,7 +67,7 @@
         </div>
 
         <!-- Team B (Eux) -->
-        <div class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50">
+        <div id="cardTeamB" class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
           <div class="font-black text-emerald-400 text-lg uppercase tracking-wide mb-1">Eux</div>
           <div id="teamBScore" class="text-4xl font-extrabold text-emerald-400 my-1">0</div>
           <div class="text-[11px] text-slate-400 mb-2">points nets</div>
@@ -109,6 +109,15 @@
             <span class="text-xs text-slate-300 font-medium">Bucké (x2)</span>
           </label>
         </div>
+      </div>
+
+      <!-- Turn Indicator -->
+      <div id="dealerTurnBanner" class="bg-slate-900/90 border border-slate-700/80 text-slate-300 px-3 py-2 rounded-xl text-xs flex items-center justify-between">
+        <span class="flex items-center gap-2">
+          <i class="fa-solid fa-hands-holding-child text-indigo-400"></i>
+          <span>Carté : <strong id="activeDealerText" class="text-white">Non défini</strong></span>
+        </span>
+        <span id="activeTeamBadge" class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-2 py-0.5 rounded text-[10px]">NOUS</span>
       </div>
 
       <!-- Tie Carryover Banner -->
@@ -263,7 +272,8 @@
     let roulesState = { A: [false, false], B: [false, false] };
     let dealerOrder = [];
     let isPreviousTie = false;
-    let rouleAlertShown = false;
+    let rouleAlertShownTeamA = false;
+    let rouleAlertShownTeamB = false;
     const maxRounds = 12;
     let modalCallback = null;
 
@@ -281,6 +291,7 @@
     const isRouleRound = document.getElementById('isRouleRound');
     const isBuckeRound = document.getElementById('isBuckeRound');
     const rouleWarningBanner = document.getElementById('rouleWarningBanner');
+    const rouleWarningText = document.getElementById('rouleWarningText');
     const tieBanner = document.getElementById('tieBanner');
 
     rawScoreSlider.addEventListener('input', updateScorePreview);
@@ -325,6 +336,8 @@
       }
 
       updateDealerLabels();
+      updateTurnIndicator();
+      checkRouleWarnings();
     }
 
     function updateDealerLabels() {
@@ -346,6 +359,43 @@
           label.className = "text-[10px] text-slate-400";
         }
       });
+    }
+
+    function getActiveDealerInfo() {
+      const currentRound = rounds.length;
+      if (dealerOrder.length === 0) {
+        // Default turn: A1 (Nous) -> B1 (Eux) alternance
+        const isTeamA = (currentRound % 2 === 0);
+        return {
+          team: isTeamA ? 'A' : 'B',
+          teamName: isTeamA ? 'Nous' : 'Eux',
+          playerName: isTeamA ? (document.getElementById('playerA1_name').value || 'Joueur 1 (Nous)') : (document.getElementById('playerB1_name').value || 'Joueur 3 (Eux)')
+        };
+      }
+
+      const activePlayerId = dealerOrder[currentRound % dealerOrder.length];
+      const isTeamA = activePlayerId.startsWith('A');
+      const inputEl = document.getElementById(`player${activePlayerId}_name`);
+      const defaultName = isTeamA ? 'Joueur (Nous)' : 'Joueur (Eux)';
+
+      return {
+        team: isTeamA ? 'A' : 'B',
+        teamName: isTeamA ? 'Nous' : 'Eux',
+        playerName: (inputEl && inputEl.value.trim()) ? inputEl.value.trim() : defaultName
+      };
+    }
+
+    function updateTurnIndicator() {
+      const info = getActiveDealerInfo();
+      document.getElementById('activeDealerText').textContent = `${info.playerName} (${info.teamName})`;
+      
+      const badge = document.getElementById('activeTeamBadge');
+      badge.textContent = info.teamName.toUpperCase();
+      if (info.team === 'A') {
+        badge.className = "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-2 py-0.5 rounded text-[10px]";
+      } else {
+        badge.className = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded text-[10px]";
+      }
     }
 
     async function handleRouleClick(team, index) {
@@ -460,6 +510,7 @@
     function addRound() {
       if (rounds.length >= maxRounds) return;
 
+      const activeInfo = getActiveDealerInfo();
       const scoreA = parseInt(rawScoreSlider.value);
       const scoreB = 60 - scoreA;
       const isRoule = isRouleRound.checked;
@@ -471,6 +522,17 @@
       const isTieRound = (scoreA === 30 && scoreB === 30);
       isPreviousTie = isTieRound;
 
+      // Auto update team Roulé badges if current round is Roulé
+      if (isRoule) {
+        const team = activeInfo.team;
+        if (!roulesState[team][0]) {
+          roulesState[team][0] = true;
+        } else if (!roulesState[team][1]) {
+          roulesState[team][1] = true;
+        }
+        renderRouleBadges();
+      }
+
       rounds.push({ 
         scoreA, 
         scoreB, 
@@ -480,7 +542,9 @@
         isBucke, 
         wasTieCarryover,
         isCapot: isCapotA || isCapotB,
-        mult 
+        mult,
+        dealerName: activeInfo.playerName,
+        dealerTeam: activeInfo.team
       });
 
       rawScoreSlider.value = 30;
@@ -532,6 +596,7 @@
           <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center text-xs">
             <div class="flex items-center gap-1.5 flex-wrap">
               <span class="font-bold text-slate-500">M${i+1}</span>
+              <span class="text-[9px] text-slate-400 font-medium">(${r.dealerName})</span>
               ${r.isCapot ? '<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold">CAPOT</span>' : ''}
               ${r.isRoule ? '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Roulé</span>' : ''}
               ${r.isBucke ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Bucké</span>' : ''}
@@ -547,36 +612,53 @@
         `).reverse().join('');
       }
 
+      updateTurnIndicator();
       checkRouleWarnings();
       updateScorePreview();
     }
 
     async function checkRouleWarnings() {
-      const roundsLeft = maxRounds - rounds.length;
-      const roulesNeededA = roulesState.A.filter(r => !r).length;
-      const roulesNeededB = roulesState.B.filter(r => !r).length;
-      const totalRoulesNeeded = roulesNeededA + roulesNeededB;
+      const currentRound = rounds.length;
+      if (currentRound >= maxRounds) return;
 
-      if (roundsLeft > 0 && totalRoulesNeeded >= roundsLeft) {
+      const activeInfo = getActiveDealerInfo();
+      const currentTeam = activeInfo.team;
+
+      // Calculate remaining deals FOR THIS SPECIFIC TEAM out of their 6 total deals
+      // Even rounds (0,2,4,6,8,10) = Team A deals, Odd rounds (1,3,5,7,9,11) = Team B deals (if starting with A)
+      let pastDealsForCurrentTeam = 0;
+      for (let i = 0; i < currentRound; i++) {
+        const isTeamADeal = (i % 2 === 0);
+        if ((isTeamADeal && currentTeam === 'A') || (!isTeamADeal && currentTeam === 'B')) {
+          pastDealsForCurrentTeam++;
+        }
+      }
+      
+      const dealsLeftForCurrentTeam = 6 - pastDealsForCurrentTeam;
+      const roulesNeededForCurrentTeam = roulesState[currentTeam].filter(r => !r).length;
+
+      if (dealsLeftForCurrentTeam > 0 && roulesNeededForCurrentTeam >= dealsLeftForCurrentTeam) {
         rouleWarningBanner.classList.remove('hidden');
+        rouleWarningText.textContent = `Manche Roulé OBLIGATOIRE pour l'équipe "${activeInfo.teamName}" (${dealsLeftForCurrentTeam} donne(s) restante(s) pour ${roulesNeededForCurrentTeam} Roulé(s) à faire).`;
         
-        // Auto check & lock Roulé round checkbox
         isRouleRound.checked = true;
         isRouleRound.disabled = true;
 
-        if (!rouleAlertShown) {
-          rouleAlertShown = true;
+        const alertKey = currentTeam === 'A' ? rouleAlertShownTeamA : rouleAlertShownTeamB;
+        if (!alertKey) {
+          if (currentTeam === 'A') rouleAlertShownTeamA = true;
+          else rouleAlertShownTeamB = true;
+
           await showCustomModal(
-            `Il reste ${roundsLeft} manche(s) pour effectuer ${totalRoulesNeeded} Roulé(s) obligatoire(s). La manche actuelle est automatiquement passée en Roulé !`,
+            `L'équipe "${activeInfo.teamName}" n'a plus assez de donnes pour reporter ses Roulés. Cette manche est automatiquement passée en Roulé !`,
             false,
-            "Roulés Obligatoires",
+            "Roulé Obligatoire",
             "fa-circle-exclamation"
           );
         }
       } else {
         rouleWarningBanner.classList.add('hidden');
         isRouleRound.disabled = false;
-        rouleAlertShown = false;
       }
     }
 
@@ -605,7 +687,8 @@
       roulesState = { A: [false, false], B: [false, false] };
       dealerOrder = [];
       isPreviousTie = false;
-      rouleAlertShown = false;
+      rouleAlertShownTeamA = false;
+      rouleAlertShownTeamB = false;
       isRouleRound.disabled = false;
       updateDealerLabels();
       renderRouleBadges();
@@ -615,7 +698,7 @@
     }
 
     renderRouleBadges();
-    updateScorePreview();
+    updateUI();
   </script>
 </body>
 </html>
