@@ -43,7 +43,7 @@
     <div id="rouleWarningBanner" class="hidden bg-amber-500/20 border border-amber-500/50 text-amber-200 p-3 rounded-xl text-xs flex items-center gap-3">
       <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>
       <div>
-        <span class="font-bold">Attention !</span> Il reste des "Roulés" obligatoires à effectuer avant la fin des 12 manches.
+        <span class="font-bold">Attention !</span> Les manches restantes sont obligatoirement des "Roulés".
       </div>
     </div>
 
@@ -117,7 +117,7 @@
         <span class="bg-indigo-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">Points x2</span>
       </div>
 
-      <!-- Preview Score Addition (Positioned Above Slider) -->
+      <!-- Preview Score Addition -->
       <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3 text-center">
         <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
           <span>Impact sur le score final :</span>
@@ -130,7 +130,7 @@
         </div>
       </div>
 
-      <!-- Slider & Controls (Left = Nous, Right = Eux) -->
+      <!-- Slider & Controls -->
       <div class="bg-slate-900 p-3 rounded-xl border border-slate-700/60">
         <div class="flex justify-between items-center mb-2">
           <span class="text-xs font-semibold text-indigo-300" id="teamALabelScore">Nous: 30 pts</span>
@@ -140,7 +140,6 @@
         <input type="range" id="rawScoreSlider" min="0" max="60" value="30" class="w-full bg-slate-700 h-2 rounded-lg appearance-none cursor-pointer">
 
         <div class="flex justify-between items-center mt-3">
-          <!-- Left = Points for Nous -->
           <div class="flex gap-1">
             <button onclick="adjustScoreForNous(5)" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+5 Nous</button>
             <button onclick="adjustScoreForNous(1)" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+1</button>
@@ -148,7 +147,6 @@
           
           <button onclick="setScoreForNous(30)" class="text-xs text-slate-400 underline font-medium">Égalité (30-30)</button>
 
-          <!-- Right = Points for Eux -->
           <div class="flex gap-1">
             <button onclick="adjustScoreForNous(-1)" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+1</button>
             <button onclick="adjustScoreForNous(-5)" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+5 Eux</button>
@@ -251,7 +249,7 @@
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
       <h4 id="modalTitle" class="font-bold text-white text-base">Attention</h4>
-      <p id="modalMessage" class="text-xs text-slate-300"></p>
+      <p id="modalMessage" class="text-xs text-slate-300 leading-relaxed"></p>
       
       <div id="modalActions" class="flex gap-2 w-full mt-2">
         <button id="modalBtnCancel" onclick="closeCustomModal(false)" class="hidden flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2 rounded-xl text-xs">Annuler</button>
@@ -265,6 +263,7 @@
     let roulesState = { A: [false, false], B: [false, false] };
     let dealerOrder = [];
     let isPreviousTie = false;
+    let rouleAlertShown = false;
     const maxRounds = 12;
     let modalCallback = null;
 
@@ -406,7 +405,6 @@
       updateScorePreview();
     }
 
-    // Max multiplier capped strictly at x4
     function getMultiplier() {
       let mult = 1;
       if (isRouleRound.checked) mult *= 2;
@@ -422,7 +420,6 @@
       let isCapotA = false;
       let isCapotB = false;
 
-      // Capot rule: 60 - 0 scores 60 * multiplier
       if (scoreA === 60) {
         netA = 60 * mult;
         isCapotA = true;
@@ -489,6 +486,7 @@
       rawScoreSlider.value = 30;
       isRouleRound.checked = false;
       isBuckeRound.checked = false;
+      isRouleRound.disabled = false;
 
       updateUI();
 
@@ -549,11 +547,11 @@
         `).reverse().join('');
       }
 
-      updateScorePreview();
       checkRouleWarnings();
+      updateScorePreview();
     }
 
-    function checkRouleWarnings() {
+    async function checkRouleWarnings() {
       const roundsLeft = maxRounds - rounds.length;
       const roulesNeededA = roulesState.A.filter(r => !r).length;
       const roulesNeededB = roulesState.B.filter(r => !r).length;
@@ -561,8 +559,24 @@
 
       if (roundsLeft > 0 && totalRoulesNeeded >= roundsLeft) {
         rouleWarningBanner.classList.remove('hidden');
+        
+        // Auto check & lock Roulé round checkbox
+        isRouleRound.checked = true;
+        isRouleRound.disabled = true;
+
+        if (!rouleAlertShown) {
+          rouleAlertShown = true;
+          await showCustomModal(
+            `Il reste ${roundsLeft} manche(s) pour effectuer ${totalRoulesNeeded} Roulé(s) obligatoire(s). La manche actuelle est automatiquement passée en Roulé !`,
+            false,
+            "Roulés Obligatoires",
+            "fa-circle-exclamation"
+          );
+        }
       } else {
         rouleWarningBanner.classList.add('hidden');
+        isRouleRound.disabled = false;
+        rouleAlertShown = false;
       }
     }
 
@@ -591,6 +605,8 @@
       roulesState = { A: [false, false], B: [false, false] };
       dealerOrder = [];
       isPreviousTie = false;
+      rouleAlertShown = false;
+      isRouleRound.disabled = false;
       updateDealerLabels();
       renderRouleBadges();
       document.getElementById('gameOverSection').classList.add('hidden');
