@@ -14,7 +14,7 @@
       height: 28px;
       width: 28px;
       border-radius: 50%;
-      background: #4F46E5;
+      background: #F59E0B;
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
@@ -26,13 +26,13 @@
   <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-20 shadow-md">
     <div class="max-w-md mx-auto flex justify-between items-center">
       <div class="flex items-center space-x-2">
-        <i class="fa-solid fa-layer-group text-indigo-400 text-xl"></i>
-        <h1 class="font-bold text-lg text-white">Manille <span class="text-xs text-indigo-400 font-normal">Base 60</span></h1>
+        <i class="fa-solid fa-layer-group text-amber-400 text-xl"></i>
+        <h1 class="font-bold text-lg text-white">Manille <span class="text-xs text-amber-400 font-normal">Base 60</span></h1>
       </div>
       
       <div class="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
         <span class="text-slate-400">Manche :</span>
-        <span id="currentRoundDisplay" class="text-indigo-400 font-bold">1</span> / 12
+        <span id="currentRoundDisplay" class="text-amber-400 font-bold">1</span> / 12
       </div>
     </div>
   </header>
@@ -43,7 +43,7 @@
     <div id="rouleWarningBanner" class="hidden bg-amber-500/20 border border-amber-500/50 text-amber-200 p-3 rounded-xl text-xs flex items-center gap-3">
       <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>
       <div>
-        <span class="font-bold">Attention !</span> <span id="rouleWarningText">Cette manche est obligatoirement un Roulé pour l'équipe qui carté.</span>
+        <span class="font-bold">Attention !</span> <span id="rouleWarningText">Manche Roulé obligatoire pour cette équipe.</span>
       </div>
     </div>
 
@@ -52,56 +52,67 @@
       <div class="grid grid-cols-2 gap-3">
         <!-- Team A (Nous) -->
         <div id="cardTeamA" class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
+          <!-- Trophy Icon for Won Sets -->
+          <div id="trophiesA" class="absolute top-2 left-2 flex gap-1 text-amber-400 text-sm"></div>
+
           <div class="font-black text-indigo-400 text-lg uppercase tracking-wide mb-1">Nous</div>
-          <div id="teamAScore" class="text-4xl font-extrabold text-indigo-400 my-1">0</div>
-          <div class="text-[11px] text-slate-400 mb-2">points nets</div>
+          <div id="teamAScore" class="text-4xl font-extrabold text-indigo-400 my-2">0</div>
           
-          <div class="flex gap-1.5">
-            <button onclick="handleRouleClick('A', 1)" id="badgeA1" class="text-[10px] px-2 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all flex items-center gap-1">
-              Roulé 1 <i class="fa-solid fa-check hidden text-emerald-400"></i>
+          <!-- Roulé Badges Team A -->
+          <div class="flex gap-1.5 mb-3">
+            <button onclick="handleRouleClick('A', 1)" id="badgeA1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all">
+              Roulé 1
             </button>
-            <button onclick="handleRouleClick('A', 2)" id="badgeA2" class="text-[10px] px-2 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all flex items-center gap-1 opacity-40 cursor-not-allowed">
-              Roulé 2 <i class="fa-solid fa-check hidden text-emerald-400"></i>
+            <button onclick="handleRouleClick('A', 2)" id="badgeA2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all opacity-40 cursor-not-allowed">
+              Roulé 2
             </button>
           </div>
+
+          <!-- Premier Carté Checkbox -->
+          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700">
+            <input type="checkbox" id="firstDealerA" onchange="setFirstDealer('A')" class="accent-indigo-500 rounded">
+            <span id="labelFirstDealerA" class="text-[10px] text-slate-400 font-medium">Premier carté</span>
+          </label>
         </div>
 
         <!-- Team B (Eux) -->
         <div id="cardTeamB" class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
-          <div class="font-black text-emerald-400 text-lg uppercase tracking-wide mb-1">Eux</div>
-          <div id="teamBScore" class="text-4xl font-extrabold text-emerald-400 my-1">0</div>
-          <div class="text-[11px] text-slate-400 mb-2">points nets</div>
+          <!-- Trophy Icon for Won Sets -->
+          <div id="trophiesB" class="absolute top-2 left-2 flex gap-1 text-amber-400 text-sm"></div>
 
-          <div class="flex gap-1.5">
-            <button onclick="handleRouleClick('B', 1)" id="badgeB1" class="text-[10px] px-2 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all flex items-center gap-1">
-              Roulé 1 <i class="fa-solid fa-check hidden text-emerald-400"></i>
+          <div class="font-black text-emerald-400 text-lg uppercase tracking-wide mb-1">Eux</div>
+          <div id="teamBScore" class="text-4xl font-extrabold text-emerald-400 my-2">0</div>
+
+          <!-- Roulé Badges Team B -->
+          <div class="flex gap-1.5 mb-3">
+            <button onclick="handleRouleClick('B', 1)" id="badgeB1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all">
+              Roulé 1
             </button>
-            <button onclick="handleRouleClick('B', 2)" id="badgeB2" class="text-[10px] px-2 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all flex items-center gap-1 opacity-40 cursor-not-allowed">
-              Roulé 2 <i class="fa-solid fa-check hidden text-emerald-400"></i>
+            <button onclick="handleRouleClick('B', 2)" id="badgeB2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all opacity-40 cursor-not-allowed">
+              Roulé 2
             </button>
           </div>
+
+          <!-- Premier Carté Checkbox -->
+          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700">
+            <input type="checkbox" id="firstDealerB" onchange="setFirstDealer('B')" class="accent-emerald-500 rounded">
+            <span id="labelFirstDealerB" class="text-[10px] text-slate-400 font-medium">Premier carté</span>
+          </label>
         </div>
       </div>
-
-      <!-- Collapsible Player Setup Toggle -->
-      <button onclick="togglePlayerModal()" class="w-full bg-slate-900/80 border border-slate-700/80 hover:bg-slate-900 text-slate-300 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all">
-        <span class="flex items-center gap-2">
-          <i class="fa-solid fa-users text-indigo-400"></i> Configuration des Joueurs
-        </span>
-        <i class="fa-solid fa-gear text-slate-500"></i>
-      </button>
     </section>
 
     <!-- Score Input Section -->
     <section id="inputSection" class="bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl flex flex-col gap-4">
+      <!-- Top Row with Carté badge + Roulé & Bucké Checkboxes -->
       <div class="flex justify-between items-center flex-wrap gap-2">
-        <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square text-indigo-400"></i> Saisie de la manche
-        </h2>
+        <div id="activeTeamBadge" class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-cards text-[10px]"></i> Carté : Nous
+        </div>
         
         <div class="flex items-center gap-2">
           <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
-            <input type="checkbox" id="isRouleRound" onchange="updateScorePreview()" class="accent-indigo-500 rounded">
+            <input type="checkbox" id="isRouleRound" onchange="updateScorePreview()" class="accent-amber-500 rounded">
             <span class="text-xs text-slate-300 font-medium">Roulé (x2)</span>
           </label>
           <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
@@ -109,15 +120,6 @@
             <span class="text-xs text-slate-300 font-medium">Bucké (x2)</span>
           </label>
         </div>
-      </div>
-
-      <!-- Turn Indicator -->
-      <div id="dealerTurnBanner" class="bg-slate-900/90 border border-slate-700/80 text-slate-300 px-3 py-2 rounded-xl text-xs flex items-center justify-between">
-        <span class="flex items-center gap-2">
-          <i class="fa-solid fa-hands-holding-child text-indigo-400"></i>
-          <span>Carté : <strong id="activeDealerText" class="text-white">Non défini</strong></span>
-        </span>
-        <span id="activeTeamBadge" class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-2 py-0.5 rounded text-[10px]">NOUS</span>
       </div>
 
       <!-- Tie Carryover Banner -->
@@ -129,8 +131,8 @@
       <!-- Preview Score Addition -->
       <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3 text-center">
         <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-          <span>Impact sur le score final :</span>
-          <span id="multiplierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-300 border border-slate-700">x1</span>
+          <span>Impact sur le score :</span>
+          <span id="multiplierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700">x1</span>
         </div>
         <div class="flex justify-around items-center font-bold text-sm">
           <div id="previewNetA" class="text-slate-400">Nous : +0 pt</div>
@@ -163,18 +165,18 @@
         </div>
       </div>
 
-      <!-- Validation Button -->
-      <button onclick="addRound()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-base">
+      <!-- Yellow Validation Button -->
+      <button onclick="addRound()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 text-base uppercase tracking-wider">
         <i class="fa-solid fa-plus-circle"></i> Valider la manche
       </button>
     </section>
 
     <!-- Game Over Screen -->
-    <section id="gameOverSection" class="hidden bg-slate-800 p-6 rounded-2xl border border-indigo-500/50 text-center flex flex-col items-center gap-4 shadow-2xl">
+    <section id="gameOverSection" class="hidden bg-slate-800 p-6 rounded-2xl border border-amber-500/50 text-center flex flex-col items-center gap-4 shadow-2xl">
       <i class="fa-solid fa-trophy text-amber-400 text-5xl animate-bounce"></i>
-      <h2 class="text-2xl font-black text-white">Partie Terminée !</h2>
-      <p id="winnerText" class="text-indigo-300 font-bold text-lg"></p>
-      <button onclick="resetGame()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl">
+      <h2 class="text-2xl font-black text-white">Victoire Finale !</h2>
+      <p id="winnerText" class="text-amber-300 font-bold text-lg"></p>
+      <button onclick="resetGame()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl">
         Nouvelle Partie
       </button>
     </section>
@@ -183,7 +185,7 @@
     <section class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex flex-col gap-3">
       <div class="flex justify-between items-center">
         <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i> Historique (12 manches)
+          <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Historique
         </h2>
         <button onclick="undoLastRound()" id="undoBtn" class="text-xs text-amber-400 hover:underline disabled:opacity-30 disabled:no-underline" disabled>
           <i class="fa-solid fa-rotate-left"></i> Annuler
@@ -191,65 +193,11 @@
       </div>
 
       <div id="historyList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-        <div class="text-center text-xs text-slate-500 py-4">Aucune manche enregistrée pour le moment.</div>
+        <div class="text-center text-xs text-slate-500 py-4">Aucune manche enregistrée.</div>
       </div>
     </section>
 
   </main>
-
-  <!-- Player Setup Submenu Modal -->
-  <div id="playerModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
-      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-        <h3 class="font-bold text-slate-200 text-sm uppercase flex items-center gap-2">
-          <i class="fa-solid fa-users text-indigo-400"></i> Noms des Joueurs
-        </h3>
-        <button onclick="togglePlayerModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="flex flex-col gap-2">
-          <span class="text-[10px] font-bold text-indigo-400 uppercase">Joueurs (Nous)</span>
-          <div class="flex flex-col gap-1.5">
-            <input type="text" id="playerA1_name" placeholder="Joueur 1" class="bg-slate-900 text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-200 w-full focus:outline-none focus:border-indigo-500">
-            <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/60 px-2 py-1 rounded-lg border border-slate-700">
-              <input type="checkbox" onchange="toggleDealer('A1')" id="dealer_A1" class="accent-indigo-500">
-              <span id="label_dealer_A1" class="text-[10px] text-slate-400">Carté ?</span>
-            </label>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <input type="text" id="playerA2_name" placeholder="Joueur 2" class="bg-slate-900 text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-200 w-full focus:outline-none focus:border-indigo-500">
-            <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/60 px-2 py-1 rounded-lg border border-slate-700">
-              <input type="checkbox" onchange="toggleDealer('A2')" id="dealer_A2" class="accent-indigo-500">
-              <span id="label_dealer_A2" class="text-[10px] text-slate-400">Carté ?</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <span class="text-[10px] font-bold text-emerald-400 uppercase">Joueurs (Eux)</span>
-          <div class="flex flex-col gap-1.5">
-            <input type="text" id="playerB1_name" placeholder="Joueur 3" class="bg-slate-900 text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-200 w-full focus:outline-none focus:border-emerald-500">
-            <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/60 px-2 py-1 rounded-lg border border-slate-700">
-              <input type="checkbox" onchange="toggleDealer('B1')" id="dealer_B1" class="accent-emerald-500">
-              <span id="label_dealer_B1" class="text-[10px] text-slate-400">Carté ?</span>
-            </label>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <input type="text" id="playerB2_name" placeholder="Joueur 4" class="bg-slate-900 text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-200 w-full focus:outline-none focus:border-emerald-500">
-            <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/60 px-2 py-1 rounded-lg border border-slate-700">
-              <input type="checkbox" onchange="toggleDealer('B2')" id="dealer_B2" class="accent-emerald-500">
-              <span id="label_dealer_B2" class="text-[10px] text-slate-400">Carté ?</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <button onclick="togglePlayerModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs mt-2">
-        Enregistrer et Fermer
-      </button>
-    </div>
-  </div>
 
   <!-- Styled Custom Alert / Confirm Modal -->
   <div id="customModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -262,7 +210,7 @@
       
       <div id="modalActions" class="flex gap-2 w-full mt-2">
         <button id="modalBtnCancel" onclick="closeCustomModal(false)" class="hidden flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2 rounded-xl text-xs">Annuler</button>
-        <button id="modalBtnConfirm" onclick="closeCustomModal(true)" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs">OK</button>
+        <button id="modalBtnConfirm" onclick="closeCustomModal(true)" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-xl text-xs">OK</button>
       </div>
     </div>
   </div>
@@ -270,7 +218,9 @@
   <script>
     let rounds = [];
     let roulesState = { A: [false, false], B: [false, false] };
-    let dealerOrder = [];
+    let setsWon = { A: 0, B: 0 };
+    let firstDealerTeam = 'A'; // Default A
+    let firstDealerLocked = false;
     let isPreviousTie = false;
     let rouleAlertShownTeamA = false;
     let rouleAlertShownTeamB = false;
@@ -295,10 +245,6 @@
     const tieBanner = document.getElementById('tieBanner');
 
     rawScoreSlider.addEventListener('input', updateScorePreview);
-
-    function togglePlayerModal() {
-      document.getElementById('playerModal').classList.toggle('hidden');
-    }
 
     function showCustomModal(message, isConfirm = false, title = "Attention", iconClass = "fa-triangle-exclamation") {
       return new Promise((resolve) => {
@@ -326,75 +272,39 @@
       }
     }
 
-    function toggleDealer(playerId) {
-      const checkbox = document.getElementById(`dealer_${playerId}`);
+    function setFirstDealer(team) {
+      if (firstDealerLocked) return;
+      
+      firstDealerTeam = team;
+      document.getElementById('firstDealerA').checked = (team === 'A');
+      document.getElementById('firstDealerB').checked = (team === 'B');
 
-      if (checkbox.checked) {
-        if (!dealerOrder.includes(playerId)) dealerOrder.push(playerId);
-      } else {
-        dealerOrder = dealerOrder.filter(id => id !== playerId);
-      }
+      document.getElementById('labelFirstDealerA').className = team === 'A' ? "text-[10px] text-amber-400 font-bold" : "text-[10px] text-slate-400 font-medium";
+      document.getElementById('labelFirstDealerB').className = team === 'B' ? "text-[10px] text-amber-400 font-bold" : "text-[10px] text-slate-400 font-medium";
 
-      updateDealerLabels();
       updateTurnIndicator();
       checkRouleWarnings();
     }
 
-    function updateDealerLabels() {
-      const allPlayers = ['A1', 'A2', 'B1', 'B2'];
-      const textMap = ['premier carté', '2ème carté', '3ème carté', '4ème carté'];
-
-      allPlayers.forEach(id => {
-        const checkbox = document.getElementById(`dealer_${id}`);
-        const label = document.getElementById(`label_dealer_${id}`);
-        const index = dealerOrder.indexOf(id);
-
-        if (index !== -1) {
-          checkbox.checked = true;
-          label.textContent = textMap[index];
-          label.className = "text-[10px] text-amber-400 font-bold";
-        } else {
-          checkbox.checked = false;
-          label.textContent = "Carté ?";
-          label.className = "text-[10px] text-slate-400";
-        }
-      });
-    }
-
-    function getActiveDealerInfo() {
+    function getActiveTeam() {
       const currentRound = rounds.length;
-      if (dealerOrder.length === 0) {
-        // Default turn: A1 (Nous) -> B1 (Eux) alternance
-        const isTeamA = (currentRound % 2 === 0);
-        return {
-          team: isTeamA ? 'A' : 'B',
-          teamName: isTeamA ? 'Nous' : 'Eux',
-          playerName: isTeamA ? (document.getElementById('playerA1_name').value || 'Joueur 1 (Nous)') : (document.getElementById('playerB1_name').value || 'Joueur 3 (Eux)')
-        };
+      if (firstDealerTeam === 'A') {
+        return (currentRound % 2 === 0) ? 'A' : 'B';
+      } else {
+        return (currentRound % 2 === 0) ? 'B' : 'A';
       }
-
-      const activePlayerId = dealerOrder[currentRound % dealerOrder.length];
-      const isTeamA = activePlayerId.startsWith('A');
-      const inputEl = document.getElementById(`player${activePlayerId}_name`);
-      const defaultName = isTeamA ? 'Joueur (Nous)' : 'Joueur (Eux)';
-
-      return {
-        team: isTeamA ? 'A' : 'B',
-        teamName: isTeamA ? 'Nous' : 'Eux',
-        playerName: (inputEl && inputEl.value.trim()) ? inputEl.value.trim() : defaultName
-      };
     }
 
     function updateTurnIndicator() {
-      const info = getActiveDealerInfo();
-      document.getElementById('activeDealerText').textContent = `${info.playerName} (${info.teamName})`;
-      
+      const activeTeam = getActiveTeam();
       const badge = document.getElementById('activeTeamBadge');
-      badge.textContent = info.teamName.toUpperCase();
-      if (info.team === 'A') {
-        badge.className = "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-2 py-0.5 rounded text-[10px]";
+      
+      if (activeTeam === 'A') {
+        badge.innerHTML = `<i class="fa-solid fa-cards text-[10px]"></i> Carté : Nous`;
+        badge.className = "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5";
       } else {
-        badge.className = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded text-[10px]";
+        badge.innerHTML = `<i class="fa-solid fa-cards text-[10px]"></i> Carté : Eux`;
+        badge.className = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5";
       }
     }
 
@@ -429,16 +339,13 @@
       ['A', 'B'].forEach(team => {
         [1, 2].forEach(num => {
           const badge = document.getElementById(`badge${team}${num}`);
-          const icon = badge.querySelector('i');
           const isDone = roulesState[team][num - 1];
 
           if (isDone) {
-            badge.className = "text-[10px] px-2 py-1 rounded-full border border-emerald-500/50 bg-emerald-500/20 text-emerald-300 font-bold flex items-center gap-1 opacity-100";
-            icon.classList.remove('hidden');
+            badge.className = "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20";
           } else {
             const isR2Locked = num === 2 && !roulesState[team][0];
-            badge.className = `text-[10px] px-2 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold flex items-center gap-1 ${isR2Locked ? 'opacity-40 cursor-not-allowed' : 'opacity-100'}`;
-            icon.classList.add('hidden');
+            badge.className = `text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all ${isR2Locked ? 'opacity-40 cursor-not-allowed' : 'opacity-100'}`;
           }
         });
       });
@@ -497,7 +404,7 @@
       if (mult > 1) {
         multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40";
       } else {
-        multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-300 border border-slate-700";
+        multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700";
       }
 
       previewNetA.textContent = `Nous : +${netA} pt${netA > 1 ? 's' : ''}${isCapotA ? ' (CAPOT)' : ''}`;
@@ -510,7 +417,14 @@
     function addRound() {
       if (rounds.length >= maxRounds) return;
 
-      const activeInfo = getActiveDealerInfo();
+      // Lock First Dealer selection after 1st round
+      if (!firstDealerLocked) {
+        firstDealerLocked = true;
+        document.getElementById('firstDealerA').disabled = true;
+        document.getElementById('firstDealerB').disabled = true;
+      }
+
+      const activeTeam = getActiveTeam();
       const scoreA = parseInt(rawScoreSlider.value);
       const scoreB = 60 - scoreA;
       const isRoule = isRouleRound.checked;
@@ -522,13 +436,11 @@
       const isTieRound = (scoreA === 30 && scoreB === 30);
       isPreviousTie = isTieRound;
 
-      // Auto update team Roulé badges if current round is Roulé
       if (isRoule) {
-        const team = activeInfo.team;
-        if (!roulesState[team][0]) {
-          roulesState[team][0] = true;
-        } else if (!roulesState[team][1]) {
-          roulesState[team][1] = true;
+        if (!roulesState[activeTeam][0]) {
+          roulesState[activeTeam][0] = true;
+        } else if (!roulesState[activeTeam][1]) {
+          roulesState[activeTeam][1] = true;
         }
         renderRouleBadges();
       }
@@ -543,8 +455,7 @@
         wasTieCarryover,
         isCapot: isCapotA || isCapotB,
         mult,
-        dealerName: activeInfo.playerName,
-        dealerTeam: activeInfo.team
+        activeTeam
       });
 
       rawScoreSlider.value = 30;
@@ -554,7 +465,9 @@
 
       updateUI();
 
-      if (rounds.length === maxRounds) triggerGameOver();
+      if (rounds.length === maxRounds) {
+        handleSetCompletion();
+      }
     }
 
     function undoLastRound() {
@@ -566,6 +479,9 @@
         isPreviousTie = (last.scoreA === 30 && last.scoreB === 30);
       } else {
         isPreviousTie = false;
+        firstDealerLocked = false;
+        document.getElementById('firstDealerA').disabled = false;
+        document.getElementById('firstDealerB').disabled = false;
       }
 
       document.getElementById('gameOverSection').classList.add('hidden');
@@ -590,26 +506,37 @@
       }
 
       if (rounds.length === 0) {
-        historyList.innerHTML = '<div class="text-center text-xs text-slate-500 py-4">Aucune manche enregistrée pour le moment.</div>';
+        historyList.innerHTML = '<div class="text-center text-xs text-slate-500 py-4">Aucune manche enregistrée.</div>';
       } else {
-        historyList.innerHTML = rounds.map((r, i) => `
-          <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/50 flex justify-between items-center text-xs">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="font-bold text-slate-500">M${i+1}</span>
-              <span class="text-[9px] text-slate-400 font-medium">(${r.dealerName})</span>
-              ${r.isCapot ? '<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold">CAPOT</span>' : ''}
-              ${r.isRoule ? '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Roulé</span>' : ''}
-              ${r.isBucke ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Bucké</span>' : ''}
-              ${r.wasTieCarryover ? '<span class="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">x2 Égalité</span>' : ''}
-              ${r.mult > 1 ? `<span class="text-[9px] font-bold text-slate-400">(x${r.mult})</span>` : ''}
+        historyList.innerHTML = rounds.map((r, i) => {
+          const isWinnerA = r.netA > r.netB;
+          const isWinnerB = r.netB > r.netA;
+          
+          let cardBgClass = "bg-slate-900/80 border-slate-700/50";
+          if (isWinnerA) {
+            cardBgClass = "bg-indigo-950/40 border-indigo-500/30";
+          } else if (isWinnerB) {
+            cardBgClass = "bg-emerald-950/40 border-emerald-500/30";
+          }
+
+          return `
+            <div class="${cardBgClass} p-2.5 rounded-xl border flex justify-between items-center text-xs">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-slate-400">M${i+1}</span>
+                ${r.isCapot ? '<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold">CAPOT</span>' : ''}
+                ${r.isRoule ? '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Roulé</span>' : ''}
+                ${r.isBucke ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Bucké</span>' : ''}
+                ${r.wasTieCarryover ? '<span class="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">x2 Égalité</span>' : ''}
+                ${r.mult > 1 ? `<span class="text-[9px] font-bold text-slate-400">(x${r.mult})</span>` : ''}
+              </div>
+              <div class="flex items-center gap-3 font-bold text-sm shrink-0">
+                <span class="${r.netA > 0 ? 'text-indigo-400 font-black' : 'text-slate-500'}">+${r.netA}</span>
+                <span class="text-slate-600 text-xs">-</span>
+                <span class="${r.netB > 0 ? 'text-emerald-400 font-black' : 'text-slate-500'}">+${r.netB}</span>
+              </div>
             </div>
-            <div class="flex items-center gap-4 font-bold shrink-0">
-              <span class="${r.netA > 0 ? 'text-indigo-400 font-extrabold' : 'text-slate-400'}">+${r.netA} <span class="text-[10px] font-normal text-slate-500">(${r.scoreA})</span></span>
-              <span class="text-slate-600">-</span>
-              <span class="${r.netB > 0 ? 'text-emerald-400 font-extrabold' : 'text-slate-400'}">+${r.netB} <span class="text-[10px] font-normal text-slate-500">(${r.scoreB})</span></span>
-            </div>
-          </div>
-        `).reverse().join('');
+          `;
+        }).reverse().join('');
       }
 
       updateTurnIndicator();
@@ -621,17 +548,12 @@
       const currentRound = rounds.length;
       if (currentRound >= maxRounds) return;
 
-      const activeInfo = getActiveDealerInfo();
-      const currentTeam = activeInfo.team;
+      const currentTeam = getActiveTeam();
 
-      // Calculate remaining deals FOR THIS SPECIFIC TEAM out of their 6 total deals
-      // Even rounds (0,2,4,6,8,10) = Team A deals, Odd rounds (1,3,5,7,9,11) = Team B deals (if starting with A)
       let pastDealsForCurrentTeam = 0;
       for (let i = 0; i < currentRound; i++) {
-        const isTeamADeal = (i % 2 === 0);
-        if ((isTeamADeal && currentTeam === 'A') || (!isTeamADeal && currentTeam === 'B')) {
-          pastDealsForCurrentTeam++;
-        }
+        const teamAtI = (firstDealerTeam === 'A') ? ((i % 2 === 0) ? 'A' : 'B') : ((i % 2 === 0) ? 'B' : 'A');
+        if (teamAtI === currentTeam) pastDealsForCurrentTeam++;
       }
       
       const dealsLeftForCurrentTeam = 6 - pastDealsForCurrentTeam;
@@ -639,7 +561,7 @@
 
       if (dealsLeftForCurrentTeam > 0 && roulesNeededForCurrentTeam >= dealsLeftForCurrentTeam) {
         rouleWarningBanner.classList.remove('hidden');
-        rouleWarningText.textContent = `Manche Roulé OBLIGATOIRE pour l'équipe "${activeInfo.teamName}" (${dealsLeftForCurrentTeam} donne(s) restante(s) pour ${roulesNeededForCurrentTeam} Roulé(s) à faire).`;
+        rouleWarningText.textContent = `Manche Roulé OBLIGATOIRE pour l'équipe ${currentTeam === 'A' ? 'Nous' : 'Eux'}.`;
         
         isRouleRound.checked = true;
         isRouleRound.disabled = true;
@@ -650,7 +572,7 @@
           else rouleAlertShownTeamB = true;
 
           await showCustomModal(
-            `L'équipe "${activeInfo.teamName}" n'a plus assez de donnes pour reporter ses Roulés. Cette manche est automatiquement passée en Roulé !`,
+            `L'équipe "${currentTeam === 'A' ? 'Nous' : 'Eux'}" doit effectuer ses Roulés. Cette manche est automatiquement passée en Roulé !`,
             false,
             "Roulé Obligatoire",
             "fa-circle-exclamation"
@@ -662,41 +584,82 @@
       }
     }
 
-    function triggerGameOver() {
+    function handleSetCompletion() {
       const totalA = rounds.reduce((sum, r) => sum + r.netA, 0);
       const totalB = rounds.reduce((sum, r) => sum + r.netB, 0);
 
+      if (totalA > totalB) {
+        setsWon.A++;
+      } else if (totalB > totalA) {
+        setsWon.B++;
+      }
+
+      renderTrophies();
+
+      if (setsWon.A === 2 || setsWon.B === 2) {
+        triggerGameOver();
+      } else {
+        // Start next set automatically
+        showCustomModal(`Manche terminée ! ${totalA > totalB ? 'Nous gagnons' : 'Eux gagnent'} cette manche (${totalA} - ${totalB}). Début de la manche suivante.`, false, "Fin de Manche", "fa-trophy").then(() => {
+          rounds = [];
+          roulesState = { A: [false, false], B: [false, false] };
+          isPreviousTie = false;
+          rouleAlertShownTeamA = false;
+          rouleAlertShownTeamB = false;
+          renderRouleBadges();
+          updateUI();
+        });
+      }
+    }
+
+    function renderTrophies() {
+      const trophiesA = document.getElementById('trophiesA');
+      const trophiesB = document.getElementById('trophiesB');
+
+      trophiesA.innerHTML = Array(setsWon.A).fill('<i class="fa-solid fa-trophy"></i>').join('');
+      trophiesB.innerHTML = Array(setsWon.B).fill('<i class="fa-solid fa-trophy"></i>').join('');
+    }
+
+    function triggerGameOver() {
       document.getElementById('inputSection').classList.add('hidden');
       const gameOverEl = document.getElementById('gameOverSection');
       gameOverEl.classList.remove('hidden');
 
       const winnerText = document.getElementById('winnerText');
-      if (totalA > totalB) {
-        winnerText.textContent = `Victoire de Nous (${totalA} - ${totalB})`;
-      } else if (totalB > totalA) {
-        winnerText.textContent = `Victoire de Eux (${totalB} - ${totalA})`;
+      if (setsWon.A > setsWon.B) {
+        winnerText.textContent = `Victoire de "Nous" en 2 manches gagnantes !`;
       } else {
-        winnerText.textContent = `Égalité parfaite ! (${totalA} - ${totalB})`;
+        winnerText.textContent = `Victoire de "Eux" en 2 manches gagnantes !`;
       }
 
-      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     }
 
     function resetGame() {
       rounds = [];
       roulesState = { A: [false, false], B: [false, false] };
-      dealerOrder = [];
+      setsWon = { A: 0, B: 0 };
+      firstDealerTeam = 'A';
+      firstDealerLocked = false;
       isPreviousTie = false;
       rouleAlertShownTeamA = false;
       rouleAlertShownTeamB = false;
-      isRouleRound.disabled = false;
-      updateDealerLabels();
+      
+      document.getElementById('firstDealerA').checked = true;
+      document.getElementById('firstDealerB').checked = false;
+      document.getElementById('firstDealerA').disabled = false;
+      document.getElementById('firstDealerB').disabled = false;
+
+      renderTrophies();
       renderRouleBadges();
       document.getElementById('gameOverSection').classList.add('hidden');
       document.getElementById('inputSection').classList.remove('hidden');
+      setFirstDealer('A');
       updateUI();
     }
 
+    // Init
+    setFirstDealer('A');
     renderRouleBadges();
     updateUI();
   </script>
