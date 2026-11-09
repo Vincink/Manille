@@ -1,14 +1,22 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Compteur Manille (Base 60)</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     body { touch-action: manipulation; }
+    * {
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
     input[type=range]::-webkit-slider-thumb {
       -webkit-appearance: none;
       height: 28px;
@@ -20,22 +28,64 @@
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen pb-12 flex flex-col font-sans select-none">
+<body class="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100 min-h-screen pb-12 flex flex-col font-sans select-none">
 
   <!-- Header -->
-  <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-20 shadow-md">
-    <div class="max-w-md mx-auto flex justify-between items-center">
+  <header class="bg-slate-800 dark:bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-20 shadow-md flex justify-between items-center">
+    <div class="max-w-md mx-auto w-full flex justify-between items-center">
       <div class="flex items-center space-x-2">
         <i class="fa-solid fa-layer-group text-amber-400 text-xl"></i>
-        <h1 class="font-bold text-lg text-white">Manille <span class="text-xs text-amber-400 font-normal">Base 60</span></h1>
+        <h1 class="font-bold text-lg text-slate-100">Manille <span class="text-xs text-amber-400 font-normal">Base 60</span></h1>
       </div>
       
-      <div class="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
-        <span class="text-slate-400">Donne :</span>
-        <span id="currentRoundDisplay" class="text-amber-400 font-bold">1</span> / 12
+      <div class="flex items-center gap-3">
+        <div class="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+          <span class="text-slate-400">Donne :</span>
+          <span id="currentRoundDisplay" class="text-amber-400 font-bold">1</span> / 12
+        </div>
+
+        <!-- Burger Menu Button -->
+        <button onclick="toggleBurgerMenu()" class="p-2 text-slate-300 hover:text-white rounded-lg focus:outline-none">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
       </div>
     </div>
   </header>
+
+  <!-- Drawer / Slide-out Burger Menu -->
+  <div id="burgerDrawer" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-end">
+    <div class="bg-slate-800 dark:bg-slate-800 border-l border-slate-700 w-64 h-full p-5 flex flex-col gap-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-amber-400"></i> Menu
+        </h3>
+        <button onclick="toggleBurgerMenu()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Theme Switcher -->
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-slate-300">Thème lumineux</span>
+        <button onclick="toggleTheme()" id="themeToggleBtn" class="bg-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-400 flex items-center gap-2">
+          <i id="themeIcon" class="fa-solid fa-moon"></i> <span id="themeLabel">Sombre</span>
+        </button>
+      </div>
+
+      <!-- Team Custom Color Options -->
+      <button onclick="toggleColorModal()" class="w-full bg-slate-900/80 border border-slate-700 hover:bg-slate-900 text-slate-300 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all">
+        <span class="flex items-center gap-2">
+          <i class="fa-solid fa-palette text-amber-400"></i> Couleur des Équipes
+        </span>
+        <i class="fa-solid fa-chevron-right text-slate-500 text-xs"></i>
+      </button>
+
+      <hr class="border-slate-700">
+
+      <!-- Clear All Data Button -->
+      <button onclick="clearAllDataPrompt()" class="w-full bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600/30 text-rose-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+        <i class="fa-solid fa-trash-can"></i> Effacer toutes les données
+      </button>
+    </div>
+  </div>
 
   <main class="max-w-md mx-auto w-full p-4 flex-1 flex flex-col gap-4">
     
@@ -48,17 +98,15 @@
     </div>
 
     <!-- Main Scoreboard -->
-    <section class="bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl flex flex-col gap-3">
+    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-xl flex flex-col gap-3">
       <div class="grid grid-cols-2 gap-3">
         <!-- Team A (Nous) -->
         <div id="cardTeamA" class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
-          <!-- Trophy Icon for Won Sets -->
           <div id="trophiesA" class="absolute top-2 left-2 flex gap-1 text-amber-400 text-sm"></div>
 
-          <div class="font-black text-indigo-400 text-lg uppercase tracking-wide mb-1">Nous</div>
+          <div id="teamANameHeader" class="font-black text-indigo-400 text-lg uppercase tracking-wide mb-1">Nous</div>
           <div id="teamAScore" class="text-4xl font-extrabold text-indigo-400 my-2">0</div>
           
-          <!-- Roulé Badges Team A -->
           <div class="flex gap-1.5 mb-3">
             <span id="badgeA1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none">
               Roulé 1
@@ -68,7 +116,6 @@
             </span>
           </div>
 
-          <!-- Premier Carté Checkbox -->
           <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700">
             <input type="checkbox" id="firstDealerA" onchange="setFirstDealer('A')" class="accent-indigo-500 rounded">
             <span id="labelFirstDealerA" class="text-[10px] text-slate-400 font-medium">Premier carté</span>
@@ -77,13 +124,11 @@
 
         <!-- Team B (Eux) -->
         <div id="cardTeamB" class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
-          <!-- Trophy Icon for Won Sets -->
           <div id="trophiesB" class="absolute top-2 left-2 flex gap-1 text-amber-400 text-sm"></div>
 
-          <div class="font-black text-emerald-400 text-lg uppercase tracking-wide mb-1">Eux</div>
+          <div id="teamBNameHeader" class="font-black text-emerald-400 text-lg uppercase tracking-wide mb-1">Eux</div>
           <div id="teamBScore" class="text-4xl font-extrabold text-emerald-400 my-2">0</div>
 
-          <!-- Roulé Badges Team B -->
           <div class="flex gap-1.5 mb-3">
             <span id="badgeB1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none">
               Roulé 1
@@ -93,7 +138,6 @@
             </span>
           </div>
 
-          <!-- Premier Carté Checkbox -->
           <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700">
             <input type="checkbox" id="firstDealerB" onchange="setFirstDealer('B')" class="accent-emerald-500 rounded">
             <span id="labelFirstDealerB" class="text-[10px] text-slate-400 font-medium">Premier carté</span>
@@ -103,8 +147,7 @@
     </section>
 
     <!-- Score Input Section -->
-    <section id="inputSection" class="bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl flex flex-col gap-4">
-      <!-- Top Row with Carté badge + Roulé & Bucké Checkboxes -->
+    <section id="inputSection" class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-xl flex flex-col gap-4">
       <div class="flex justify-between items-center flex-wrap gap-2">
         <div id="activeTeamBadge" class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5">
           <i class="fa-solid fa-cards text-[10px]"></i> Carté : Nous
@@ -172,9 +215,9 @@
     </section>
 
     <!-- Game Over Screen -->
-    <section id="gameOverSection" class="hidden bg-slate-800 p-6 rounded-2xl border border-amber-500/50 text-center flex flex-col items-center gap-4 shadow-2xl">
+    <section id="gameOverSection" class="hidden bg-slate-800 border border-amber-500/50 p-6 rounded-2xl text-center flex flex-col items-center gap-4 shadow-2xl">
       <i class="fa-solid fa-trophy text-amber-400 text-5xl animate-bounce"></i>
-      <h2 class="text-2xl font-black text-white">Victoire Finale !</h2>
+      <h2 class="text-2xl font-black text-slate-100">Victoire Finale !</h2>
       <p id="winnerText" class="text-amber-300 font-bold text-lg"></p>
       <button onclick="resetGame()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl">
         Nouvelle Partie
@@ -182,7 +225,7 @@
     </section>
 
     <!-- History with Set Tabs -->
-    <section class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex flex-col gap-3">
+    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl flex flex-col gap-3">
       <div class="flex justify-between items-center">
         <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
           <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Historique
@@ -193,9 +236,7 @@
       </div>
 
       <!-- Set Tabs (Manche 1, Manche 2, Manche 3) -->
-      <div class="flex gap-1.5 border-b border-slate-700 pb-2 overflow-x-auto" id="setTabsContainer">
-        <!-- Rendered dynamically -->
-      </div>
+      <div class="flex gap-1.5 border-b border-slate-700 pb-2 overflow-x-auto" id="setTabsContainer"></div>
 
       <div id="historyList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
         <div class="text-center text-xs text-slate-500 py-4">Aucune donne enregistrée.</div>
@@ -204,13 +245,40 @@
 
   </main>
 
+  <!-- Team Color Picker Modal -->
+  <div id="colorModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-xs rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 class="font-bold text-slate-100 text-sm uppercase flex items-center gap-2">
+          <i class="fa-solid fa-palette text-amber-400"></i> Couleur des Équipes
+        </h3>
+        <button onclick="toggleColorModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="text-xs text-slate-300 font-semibold mb-1 block">Équipe Nous :</label>
+          <input type="color" id="colorPickerA" value="#818cf8" class="w-full h-9 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer p-1">
+        </div>
+        <div>
+          <label class="text-xs text-slate-300 font-semibold mb-1 block">Équipe Eux :</label>
+          <input type="color" id="colorPickerB" value="#34d399" class="w-full h-9 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer p-1">
+        </div>
+      </div>
+
+      <button onclick="applyCustomColors()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs">
+        Appliquer les couleurs
+      </button>
+    </div>
+  </div>
+
   <!-- Styled Custom Alert / Confirm Modal -->
   <div id="customModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-xs rounded-2xl p-5 shadow-2xl flex flex-col items-center text-center gap-3">
       <div id="modalIcon" class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
-      <h4 id="modalTitle" class="font-bold text-white text-base">Attention</h4>
+      <h4 id="modalTitle" class="font-bold text-slate-100 text-base">Attention</h4>
       <p id="modalMessage" class="text-xs text-slate-300 leading-relaxed"></p>
       
       <div id="modalActions" class="flex gap-2 w-full mt-2">
@@ -221,18 +289,21 @@
   </div>
 
   <script>
-    let pastSetsHistory = []; // Array of arrays containing rounds for completed sets
-    let currentSetRounds = []; // Rounds for current active set
-    let activeTabSetIndex = 0; // Currently viewed tab (0-indexed)
+    let pastSetsHistory = [];
+    let currentSetRounds = [];
+    let activeTabSetIndex = 0;
 
     let setsWon = { A: 0, B: 0 };
-    let firstDealerTeam = 'A'; // Default A
+    let setStartDealerTeam = 'A'; // Team starting the FIRST deal of the CURRENT set
     let firstDealerLocked = false;
     let isPreviousTie = false;
     let rouleAlertShownTeamA = false;
     let rouleAlertShownTeamB = false;
     const maxRounds = 12;
     let modalCallback = null;
+
+    let customColorA = "#818cf8"; // Indigo
+    let customColorB = "#34d399"; // Emerald
 
     const rawScoreSlider = document.getElementById('rawScoreSlider');
     const teamALabelScore = document.getElementById('teamALabelScore');
@@ -252,6 +323,42 @@
     const tieBanner = document.getElementById('tieBanner');
 
     rawScoreSlider.addEventListener('input', updateScorePreview);
+
+    function toggleBurgerMenu() {
+      document.getElementById('burgerDrawer').classList.toggle('hidden');
+    }
+
+    function toggleColorModal() {
+      toggleBurgerMenu();
+      document.getElementById('colorModal').classList.toggle('hidden');
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      document.getElementById('themeIcon').className = isDark ? "fa-solid fa-moon" : "fa-solid fa-sun";
+      document.getElementById('themeLabel').textContent = isDark ? "Sombre" : "Clair";
+    }
+
+    function applyCustomColors() {
+      customColorA = document.getElementById('colorPickerA').value;
+      customColorB = document.getElementById('colorPickerB').value;
+
+      document.getElementById('teamANameHeader').style.color = customColorA;
+      document.getElementById('teamAScore').style.color = customColorA;
+      document.getElementById('teamBNameHeader').style.color = customColorB;
+      document.getElementById('teamBScore').style.color = customColorB;
+
+      document.getElementById('colorModal').classList.add('hidden');
+      updateUI();
+    }
+
+    async function clearAllDataPrompt() {
+      toggleBurgerMenu();
+      const confirmClear = await showCustomModal("Voulez-vous vraiment effacer toutes les données et réinitialiser la partie ?", true, "Effacer tout", "fa-trash-can");
+      if (confirmClear) {
+        resetGame();
+      }
+    }
 
     function showCustomModal(message, isConfirm = false, title = "Attention", iconClass = "fa-triangle-exclamation") {
       return new Promise((resolve) => {
@@ -282,7 +389,7 @@
     function setFirstDealer(team) {
       if (firstDealerLocked) return;
       
-      firstDealerTeam = team;
+      setStartDealerTeam = team;
       document.getElementById('firstDealerA').checked = (team === 'A');
       document.getElementById('firstDealerB').checked = (team === 'B');
 
@@ -295,7 +402,7 @@
 
     function getActiveTeam() {
       const currentRound = currentSetRounds.length;
-      if (firstDealerTeam === 'A') {
+      if (setStartDealerTeam === 'A') {
         return (currentRound % 2 === 0) ? 'A' : 'B';
       } else {
         return (currentRound % 2 === 0) ? 'B' : 'A';
@@ -308,10 +415,10 @@
       
       if (activeTeam === 'A') {
         badge.innerHTML = `<i class="fa-solid fa-cards text-[10px]"></i> Carté : Nous`;
-        badge.className = "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5";
+        badge.style.color = customColorA;
       } else {
         badge.innerHTML = `<i class="fa-solid fa-cards text-[10px]"></i> Carté : Eux`;
-        badge.className = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5";
+        badge.style.color = customColorB;
       }
     }
 
@@ -323,7 +430,6 @@
       const roulesA = getRoulesCount('A');
       const roulesB = getRoulesCount('B');
 
-      // Team A
       const badgeA1 = document.getElementById('badgeA1');
       const badgeA2 = document.getElementById('badgeA2');
       badgeA1.className = roulesA >= 1 
@@ -334,7 +440,6 @@
         ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20 pointer-events-none" 
         : "text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-40";
 
-      // Team B
       const badgeB1 = document.getElementById('badgeB1');
       const badgeB2 = document.getElementById('badgeB2');
       badgeB1.className = roulesB >= 1 
@@ -403,10 +508,10 @@
       }
 
       previewNetA.textContent = `Nous : +${netA} pt${netA > 1 ? 's' : ''}${isCapotA ? ' (CAPOT)' : ''}`;
-      previewNetA.className = netA > 0 ? "text-indigo-400 font-bold" : "text-slate-400";
+      previewNetA.style.color = netA > 0 ? customColorA : "#94a3b8";
 
       previewNetB.textContent = `Eux : +${netB} pt${netB > 1 ? 's' : ''}${isCapotB ? ' (CAPOT)' : ''}`;
-      previewNetB.className = netB > 0 ? "text-emerald-400 font-bold" : "text-slate-400";
+      previewNetB.style.color = netB > 0 ? customColorB : "#94a3b8";
     }
 
     function addRound() {
@@ -448,7 +553,6 @@
       isBuckeRound.checked = false;
       isRouleRound.disabled = false;
 
-      // Switch to current set tab when adding new round
       activeTabSetIndex = pastSetsHistory.length;
 
       updateUI();
@@ -553,9 +657,9 @@
                 ${r.mult > 1 ? `<span class="text-[9px] font-bold text-slate-400">(x${r.mult})</span>` : ''}
               </div>
               <div class="flex items-center gap-3 font-bold text-sm shrink-0">
-                <span class="${r.netA > 0 ? 'text-indigo-400 font-black' : 'text-slate-500'}">+${r.netA}</span>
+                <span style="color: ${r.netA > 0 ? customColorA : '#64748b'}" class="font-black">+${r.netA}</span>
                 <span class="text-slate-600 text-xs">-</span>
-                <span class="${r.netB > 0 ? 'text-emerald-400 font-black' : 'text-slate-500'}">+${r.netB}</span>
+                <span style="color: ${r.netB > 0 ? customColorB : '#64748b'}" class="font-black">+${r.netB}</span>
               </div>
             </div>
           `;
@@ -595,7 +699,7 @@
 
       let pastDealsForCurrentTeam = 0;
       for (let i = 0; i < currentRound; i++) {
-        const teamAtI = (firstDealerTeam === 'A') ? ((i % 2 === 0) ? 'A' : 'B') : ((i % 2 === 0) ? 'B' : 'A');
+        const teamAtI = (setStartDealerTeam === 'A') ? ((i % 2 === 0) ? 'A' : 'B') : ((i % 2 === 0) ? 'B' : 'A');
         if (teamAtI === currentTeam) pastDealsForCurrentTeam++;
       }
       
@@ -637,20 +741,26 @@
         setsWon.B++;
       }
 
-      // Archive current set to history
       pastSetsHistory.push([...currentSetRounds]);
-
       renderTrophies();
 
       if (setsWon.A === 2 || setsWon.B === 2) {
         triggerGameOver();
       } else {
+        const nextSetStartTeam = (setStartDealerTeam === 'A') ? 'B' : 'A';
         showCustomModal(`Manche terminée ! ${totalA > totalB ? 'Nous gagnons' : 'Eux gagnent'} cette manche (${totalA} - ${totalB}). Début de la manche suivante.`, false, "Fin de Manche", "fa-trophy").then(() => {
           currentSetRounds = [];
           isPreviousTie = false;
           rouleAlertShownTeamA = false;
           rouleAlertShownTeamB = false;
           activeTabSetIndex = pastSetsHistory.length;
+          
+          firstDealerLocked = false;
+          setFirstDealer(nextSetStartTeam);
+          firstDealerLocked = true;
+          document.getElementById('firstDealerA').disabled = true;
+          document.getElementById('firstDealerB').disabled = true;
+
           renderRouleBadges();
           updateUI();
         });
@@ -685,7 +795,7 @@
       currentSetRounds = [];
       activeTabSetIndex = 0;
       setsWon = { A: 0, B: 0 };
-      firstDealerTeam = 'A';
+      setStartDealerTeam = 'A';
       firstDealerLocked = false;
       isPreviousTie = false;
       rouleAlertShownTeamA = false;
