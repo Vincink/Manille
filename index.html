@@ -60,12 +60,12 @@
           
           <!-- Roulé Badges Team A -->
           <div class="flex gap-1.5 mb-3">
-            <button onclick="handleRouleClick('A', 1)" id="badgeA1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all">
+            <span id="badgeA1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none">
               Roulé 1
-            </button>
-            <button onclick="handleRouleClick('A', 2)" id="badgeA2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all opacity-40 cursor-not-allowed">
+            </span>
+            <span id="badgeA2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-40">
               Roulé 2
-            </button>
+            </span>
           </div>
 
           <!-- Premier Carté Checkbox -->
@@ -85,12 +85,12 @@
 
           <!-- Roulé Badges Team B -->
           <div class="flex gap-1.5 mb-3">
-            <button onclick="handleRouleClick('B', 1)" id="badgeB1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all">
+            <span id="badgeB1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none">
               Roulé 1
-            </button>
-            <button onclick="handleRouleClick('B', 2)" id="badgeB2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all opacity-40 cursor-not-allowed">
+            </span>
+            <span id="badgeB2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-40">
               Roulé 2
-            </button>
+            </span>
           </div>
 
           <!-- Premier Carté Checkbox -->
@@ -217,7 +217,6 @@
 
   <script>
     let rounds = [];
-    let roulesState = { A: [false, false], B: [false, false] };
     let setsWon = { A: 0, B: 0 };
     let firstDealerTeam = 'A'; // Default A
     let firstDealerLocked = false;
@@ -308,47 +307,35 @@
       }
     }
 
-    async function handleRouleClick(team, index) {
-      const isCurrentlyDone = roulesState[team][index - 1];
-
-      if (index === 2 && !roulesState[team][0] && !isCurrentlyDone) {
-        await showCustomModal("Vous devez d'abord cocher le premier Roulé !", false, "Roulé 1 Requis", "fa-lock");
-        return;
-      }
-
-      if (isCurrentlyDone) {
-        const teamName = team === 'A' ? 'Nous' : 'Eux';
-        const confirmUncheck = await showCustomModal(`Voulez-vous vraiment décocher le Roulé ${index} de l'équipe ${teamName} ?`, true, "Confirmation");
-        if (!confirmUncheck) return;
-        
-        roulesState[team][index - 1] = false;
-        if (index === 1) roulesState[team][1] = false;
-        
-        isRouleRound.checked = false;
-      } else {
-        roulesState[team][index - 1] = true;
-        isRouleRound.checked = true;
-      }
-
-      renderRouleBadges();
-      checkRouleWarnings();
-      updateScorePreview();
+    function getRoulesCount(team) {
+      return rounds.filter(r => r.isRoule && r.activeTeam === team).length;
     }
 
     function renderRouleBadges() {
-      ['A', 'B'].forEach(team => {
-        [1, 2].forEach(num => {
-          const badge = document.getElementById(`badge${team}${num}`);
-          const isDone = roulesState[team][num - 1];
+      const roulesA = getRoulesCount('A');
+      const roulesB = getRoulesCount('B');
 
-          if (isDone) {
-            badge.className = "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20";
-          } else {
-            const isR2Locked = num === 2 && !roulesState[team][0];
-            badge.className = `text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all ${isR2Locked ? 'opacity-40 cursor-not-allowed' : 'opacity-100'}`;
-          }
-        });
-      });
+      // Team A
+      const badgeA1 = document.getElementById('badgeA1');
+      const badgeA2 = document.getElementById('badgeA2');
+      badgeA1.className = roulesA >= 1 
+        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20 pointer-events-none" 
+        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-100";
+      
+      badgeA2.className = roulesA >= 2 
+        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20 pointer-events-none" 
+        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-40";
+
+      // Team B
+      const badgeB1 = document.getElementById('badgeB1');
+      const badgeB2 = document.getElementById('badgeB2');
+      badgeB1.className = roulesB >= 1 
+        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20 pointer-events-none" 
+        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-100";
+      
+      badgeB2.className = roulesB >= 2 
+        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20 pointer-events-none" 
+        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-40";
     }
 
     function adjustScoreForNous(delta) {
@@ -417,7 +404,6 @@
     function addRound() {
       if (rounds.length >= maxRounds) return;
 
-      // Lock First Dealer selection after 1st round
       if (!firstDealerLocked) {
         firstDealerLocked = true;
         document.getElementById('firstDealerA').disabled = true;
@@ -435,15 +421,6 @@
 
       const isTieRound = (scoreA === 30 && scoreB === 30);
       isPreviousTie = isTieRound;
-
-      if (isRoule) {
-        if (!roulesState[activeTeam][0]) {
-          roulesState[activeTeam][0] = true;
-        } else if (!roulesState[activeTeam][1]) {
-          roulesState[activeTeam][1] = true;
-        }
-        renderRouleBadges();
-      }
 
       rounds.push({ 
         scoreA, 
@@ -539,6 +516,7 @@
         }).reverse().join('');
       }
 
+      renderRouleBadges();
       updateTurnIndicator();
       checkRouleWarnings();
       updateScorePreview();
@@ -557,7 +535,7 @@
       }
       
       const dealsLeftForCurrentTeam = 6 - pastDealsForCurrentTeam;
-      const roulesNeededForCurrentTeam = roulesState[currentTeam].filter(r => !r).length;
+      const roulesNeededForCurrentTeam = 2 - getRoulesCount(currentTeam);
 
       if (dealsLeftForCurrentTeam > 0 && roulesNeededForCurrentTeam >= dealsLeftForCurrentTeam) {
         rouleWarningBanner.classList.remove('hidden');
@@ -599,10 +577,8 @@
       if (setsWon.A === 2 || setsWon.B === 2) {
         triggerGameOver();
       } else {
-        // Start next set automatically
         showCustomModal(`Manche terminée ! ${totalA > totalB ? 'Nous gagnons' : 'Eux gagnent'} cette manche (${totalA} - ${totalB}). Début de la manche suivante.`, false, "Fin de Manche", "fa-trophy").then(() => {
           rounds = [];
-          roulesState = { A: [false, false], B: [false, false] };
           isPreviousTie = false;
           rouleAlertShownTeamA = false;
           rouleAlertShownTeamB = false;
@@ -637,7 +613,6 @@
 
     function resetGame() {
       rounds = [];
-      roulesState = { A: [false, false], B: [false, false] };
       setsWon = { A: 0, B: 0 };
       firstDealerTeam = 'A';
       firstDealerLocked = false;
