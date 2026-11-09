@@ -358,6 +358,16 @@
     let isSpectator = false;
     let peerId = null;
 
+    const p2pConfig = {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' }
+        ]
+      }
+    };
+
     const rawScoreSlider = document.getElementById('rawScoreSlider');
     const teamALabelScore = document.getElementById('teamALabelScore');
     const teamBLabelScore = document.getElementById('teamBLabelScore');
@@ -399,7 +409,7 @@
     }
 
     function initHostPeer() {
-      peer = new Peer();
+      peer = new Peer(p2pConfig);
 
       peer.on('open', (id) => {
         peerId = id;
@@ -427,7 +437,7 @@
     function connectAsSpectator(targetRoomId) {
       document.getElementById('spectatorStatus').textContent = "Connexion en cours...";
       
-      peer = new Peer();
+      peer = new Peer(p2pConfig);
 
       peer.on('open', () => {
         const conn = peer.connect(targetRoomId, { reliable: true });
@@ -449,7 +459,7 @@
       });
 
       peer.on('error', (err) => {
-        document.getElementById('spectatorStatus').textContent = "Échec de connexion au serveur";
+        document.getElementById('spectatorStatus').textContent = "Échec de connexion";
       });
     }
 
@@ -499,8 +509,8 @@
     }
 
     function getShareUrl() {
-      const baseUrl = window.location.origin + window.location.pathname;
-      return `${baseUrl}?room=${peerId}`;
+      const baseUrl = window.location.href.split('?')[0];
+      return `${baseUrl}?room=${encodeURIComponent(peerId)}`;
     }
 
     function showQRCodeModal() {
@@ -517,7 +527,8 @@
       new QRCode(qrContainer, {
         text: shareUrl,
         width: 180,
-        height: 180
+        height: 180,
+        correctLevel: QRCode.CorrectLevel.H
       });
 
       document.getElementById('qrModal').classList.remove('hidden');
