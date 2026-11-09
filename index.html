@@ -31,7 +31,7 @@
       </div>
       
       <div class="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
-        <span class="text-slate-400">Manche :</span>
+        <span class="text-slate-400">Donne :</span>
         <span id="currentRoundDisplay" class="text-amber-400 font-bold">1</span> / 12
       </div>
     </div>
@@ -167,7 +167,7 @@
 
       <!-- Yellow Validation Button -->
       <button onclick="addRound()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 text-base uppercase tracking-wider">
-        <i class="fa-solid fa-plus-circle"></i> Valider la manche
+        <i class="fa-solid fa-plus-circle"></i> Valider la donne
       </button>
     </section>
 
@@ -181,7 +181,7 @@
       </button>
     </section>
 
-    <!-- History -->
+    <!-- History with Set Tabs -->
     <section class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex flex-col gap-3">
       <div class="flex justify-between items-center">
         <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
@@ -192,8 +192,13 @@
         </button>
       </div>
 
+      <!-- Set Tabs (Manche 1, Manche 2, Manche 3) -->
+      <div class="flex gap-1.5 border-b border-slate-700 pb-2 overflow-x-auto" id="setTabsContainer">
+        <!-- Rendered dynamically -->
+      </div>
+
       <div id="historyList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-        <div class="text-center text-xs text-slate-500 py-4">Aucune manche enregistrée.</div>
+        <div class="text-center text-xs text-slate-500 py-4">Aucune donne enregistrée.</div>
       </div>
     </section>
 
@@ -216,7 +221,10 @@
   </div>
 
   <script>
-    let rounds = [];
+    let pastSetsHistory = []; // Array of arrays containing rounds for completed sets
+    let currentSetRounds = []; // Rounds for current active set
+    let activeTabSetIndex = 0; // Currently viewed tab (0-indexed)
+
     let setsWon = { A: 0, B: 0 };
     let firstDealerTeam = 'A'; // Default A
     let firstDealerLocked = false;
@@ -286,7 +294,7 @@
     }
 
     function getActiveTeam() {
-      const currentRound = rounds.length;
+      const currentRound = currentSetRounds.length;
       if (firstDealerTeam === 'A') {
         return (currentRound % 2 === 0) ? 'A' : 'B';
       } else {
@@ -308,7 +316,7 @@
     }
 
     function getRoulesCount(team) {
-      return rounds.filter(r => r.isRoule && r.activeTeam === team).length;
+      return currentSetRounds.filter(r => r.isRoule && r.activeTeam === team).length;
     }
 
     function renderRouleBadges() {
@@ -402,7 +410,7 @@
     }
 
     function addRound() {
-      if (rounds.length >= maxRounds) return;
+      if (currentSetRounds.length >= maxRounds) return;
 
       if (!firstDealerLocked) {
         firstDealerLocked = true;
@@ -422,7 +430,7 @@
       const isTieRound = (scoreA === 30 && scoreB === 30);
       isPreviousTie = isTieRound;
 
-      rounds.push({ 
+      currentSetRounds.push({ 
         scoreA, 
         scoreB, 
         netA, 
@@ -440,19 +448,22 @@
       isBuckeRound.checked = false;
       isRouleRound.disabled = false;
 
+      // Switch to current set tab when adding new round
+      activeTabSetIndex = pastSetsHistory.length;
+
       updateUI();
 
-      if (rounds.length === maxRounds) {
+      if (currentSetRounds.length === maxRounds) {
         handleSetCompletion();
       }
     }
 
     function undoLastRound() {
-      if (rounds.length === 0) return;
-      rounds.pop();
+      if (currentSetRounds.length === 0) return;
+      currentSetRounds.pop();
       
-      if (rounds.length > 0) {
-        const last = rounds[rounds.length - 1];
+      if (currentSetRounds.length > 0) {
+        const last = currentSetRounds[currentSetRounds.length - 1];
         isPreviousTie = (last.scoreA === 30 && last.scoreB === 30);
       } else {
         isPreviousTie = false;
@@ -466,26 +477,61 @@
       updateUI();
     }
 
-    function updateUI() {
-      let totalA = rounds.reduce((sum, r) => sum + r.netA, 0);
-      let totalB = rounds.reduce((sum, r) => sum + r.netB, 0);
+    function switchHistoryTab(setIndex) {
+      activeTabSetIndex = setIndex;
+      renderHistoryList();
+      renderTabs();
+    }
 
-      teamAScoreEl.textContent = totalA;
-      teamBScoreEl.textContent = totalB;
+    function renderTabs() {
+      const container = document.getElementById('setTabsContainer');
+      const totalSetsPossible = Math.min(3, pastSetsHistory.length + 1);
+      
+      let tabsHtml = '';
+      for (let i = 0; i < totalSetsPossible; i++) {
+        const isCurrentActiveSet = (i === pastSetsHistory.length);
+        const isTabSelected = (i === activeTabSetIndex);
+        
+        let label = `Manche ${i + 1}`;
+        let scoreBadge = '';
 
-      currentRoundDisplay.textContent = Math.min(rounds.length + 1, maxRounds);
-      undoBtn.disabled = rounds.length === 0;
+        if (!isCurrentActiveSet && pastSetsHistory[i]) {
+          const totA = pastSetsHistory[i].reduce((s, r) => s + r.netA, 0);
+          const totB = pastSetsHistory[i].reduce((s, r) => s + r.netB, 0);
+          scoreBadge = `<span class="text-[9px] opacity-80 font-normal">(${totA}-${totB})</span>`;
+        } else if (isCurrentActiveSet) {
+          scoreBadge = `<span class="text-[9px] text-amber-400 font-bold">• en cours</span>`;
+        }
 
-      if (isPreviousTie) {
-        tieBanner.classList.remove('hidden');
-      } else {
-        tieBanner.classList.add('hidden');
+        let tabStyle = "bg-slate-900 text-slate-400 border-slate-700 hover:text-slate-200";
+        if (isTabSelected) {
+          tabStyle = "bg-amber-400 text-slate-950 font-black border-amber-400 shadow-md shadow-amber-400/20";
+        }
+
+        tabsHtml += `
+          <button onclick="switchHistoryTab(${i})" class="px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${tabStyle}">
+            ${label} ${scoreBadge}
+          </button>
+        `;
       }
 
-      if (rounds.length === 0) {
-        historyList.innerHTML = '<div class="text-center text-xs text-slate-500 py-4">Aucune manche enregistrée.</div>';
+      container.innerHTML = tabsHtml;
+    }
+
+    function renderHistoryList() {
+      let roundsToDisplay = [];
+      const isViewingCurrentSet = (activeTabSetIndex === pastSetsHistory.length);
+
+      if (isViewingCurrentSet) {
+        roundsToDisplay = currentSetRounds;
+      } else if (pastSetsHistory[activeTabSetIndex]) {
+        roundsToDisplay = pastSetsHistory[activeTabSetIndex];
+      }
+
+      if (roundsToDisplay.length === 0) {
+        historyList.innerHTML = '<div class="text-center text-xs text-slate-500 py-4">Aucune donne enregistrée pour cette manche.</div>';
       } else {
-        historyList.innerHTML = rounds.map((r, i) => {
+        historyList.innerHTML = roundsToDisplay.map((r, i) => {
           const isWinnerA = r.netA > r.netB;
           const isWinnerB = r.netB > r.netA;
           
@@ -499,7 +545,7 @@
           return `
             <div class="${cardBgClass} p-2.5 rounded-xl border flex justify-between items-center text-xs">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-bold text-slate-400">M${i+1}</span>
+                <span class="font-bold text-slate-400">D${i+1}</span>
                 ${r.isCapot ? '<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold">CAPOT</span>' : ''}
                 ${r.isRoule ? '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Roulé</span>' : ''}
                 ${r.isBucke ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Bucké</span>' : ''}
@@ -515,7 +561,26 @@
           `;
         }).reverse().join('');
       }
+    }
 
+    function updateUI() {
+      let totalA = currentSetRounds.reduce((sum, r) => sum + r.netA, 0);
+      let totalB = currentSetRounds.reduce((sum, r) => sum + r.netB, 0);
+
+      teamAScoreEl.textContent = totalA;
+      teamBScoreEl.textContent = totalB;
+
+      currentRoundDisplay.textContent = Math.min(currentSetRounds.length + 1, maxRounds);
+      undoBtn.disabled = currentSetRounds.length === 0;
+
+      if (isPreviousTie) {
+        tieBanner.classList.remove('hidden');
+      } else {
+        tieBanner.classList.add('hidden');
+      }
+
+      renderTabs();
+      renderHistoryList();
       renderRouleBadges();
       updateTurnIndicator();
       checkRouleWarnings();
@@ -523,7 +588,7 @@
     }
 
     async function checkRouleWarnings() {
-      const currentRound = rounds.length;
+      const currentRound = currentSetRounds.length;
       if (currentRound >= maxRounds) return;
 
       const currentTeam = getActiveTeam();
@@ -550,7 +615,7 @@
           else rouleAlertShownTeamB = true;
 
           await showCustomModal(
-            `L'équipe "${currentTeam === 'A' ? 'Nous' : 'Eux'}" doit effectuer ses Roulés. Cette manche est automatiquement passée en Roulé !`,
+            `L'équipe "${currentTeam === 'A' ? 'Nous' : 'Eux'}" doit effectuer ses Roulés. Cette donne est automatiquement passée en Roulé !`,
             false,
             "Roulé Obligatoire",
             "fa-circle-exclamation"
@@ -563,8 +628,8 @@
     }
 
     function handleSetCompletion() {
-      const totalA = rounds.reduce((sum, r) => sum + r.netA, 0);
-      const totalB = rounds.reduce((sum, r) => sum + r.netB, 0);
+      const totalA = currentSetRounds.reduce((sum, r) => sum + r.netA, 0);
+      const totalB = currentSetRounds.reduce((sum, r) => sum + r.netB, 0);
 
       if (totalA > totalB) {
         setsWon.A++;
@@ -572,16 +637,20 @@
         setsWon.B++;
       }
 
+      // Archive current set to history
+      pastSetsHistory.push([...currentSetRounds]);
+
       renderTrophies();
 
       if (setsWon.A === 2 || setsWon.B === 2) {
         triggerGameOver();
       } else {
         showCustomModal(`Manche terminée ! ${totalA > totalB ? 'Nous gagnons' : 'Eux gagnent'} cette manche (${totalA} - ${totalB}). Début de la manche suivante.`, false, "Fin de Manche", "fa-trophy").then(() => {
-          rounds = [];
+          currentSetRounds = [];
           isPreviousTie = false;
           rouleAlertShownTeamA = false;
           rouleAlertShownTeamB = false;
+          activeTabSetIndex = pastSetsHistory.length;
           renderRouleBadges();
           updateUI();
         });
@@ -612,7 +681,9 @@
     }
 
     function resetGame() {
-      rounds = [];
+      pastSetsHistory = [];
+      currentSetRounds = [];
+      activeTabSetIndex = 0;
       setsWon = { A: 0, B: 0 };
       firstDealerTeam = 'A';
       firstDealerLocked = false;
