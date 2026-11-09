@@ -14,8 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     body { touch-action: manipulation; }
-    * {
-      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    *, ::before, ::after {
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
     }
     input[type=range]::-webkit-slider-thumb {
       -webkit-appearance: none;
@@ -28,60 +28,60 @@
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100 min-h-screen pb-12 flex flex-col font-sans select-none">
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen pb-12 flex flex-col font-sans select-none">
 
   <!-- Header -->
-  <header class="bg-slate-800 dark:bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-20 shadow-md flex justify-between items-center">
+  <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-4 sticky top-0 z-20 shadow-md flex justify-between items-center">
     <div class="max-w-md mx-auto w-full flex justify-between items-center">
       <div class="flex items-center space-x-2">
-        <i class="fa-solid fa-layer-group text-amber-400 text-xl"></i>
-        <h1 class="font-bold text-lg text-slate-100">Manille <span class="text-xs text-amber-400 font-normal">Base 60</span></h1>
+        <i class="fa-solid fa-layer-group text-amber-500 dark:text-amber-400 text-xl"></i>
+        <h1 class="font-bold text-lg text-slate-800 dark:text-slate-100">Manille <span class="text-xs text-amber-500 dark:text-amber-400 font-normal">Base 60</span></h1>
       </div>
       
       <div class="flex items-center gap-3">
-        <div class="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
-          <span class="text-slate-400">Donne :</span>
-          <span id="currentRoundDisplay" class="text-amber-400 font-bold">1</span> / 12
+        <div class="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+          <span class="text-slate-500 dark:text-slate-400">Donne :</span>
+          <span id="currentRoundDisplay" class="text-amber-500 dark:text-amber-400 font-bold">1</span> / 12
         </div>
 
         <!-- Burger Menu Button -->
-        <button onclick="toggleBurgerMenu()" class="p-2 text-slate-300 hover:text-white rounded-lg focus:outline-none">
+        <button onclick="toggleBurgerMenu()" class="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-lg focus:outline-none">
           <i class="fa-solid fa-bars text-xl"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Drawer / Slide-out Burger Menu -->
-  <div id="burgerDrawer" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-end">
-    <div class="bg-slate-800 dark:bg-slate-800 border-l border-slate-700 w-64 h-full p-5 flex flex-col gap-6 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-        <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
-          <i class="fa-solid fa-sliders text-amber-400"></i> Menu
+  <!-- Drawer Burger Menu -->
+  <div id="burgerDrawer" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex justify-end">
+    <div class="bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 w-64 h-full p-5 flex flex-col gap-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3">
+        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-amber-500 dark:text-amber-400"></i> Menu
         </h3>
-        <button onclick="toggleBurgerMenu()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="toggleBurgerMenu()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <!-- Theme Switcher -->
       <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold text-slate-300">Thème lumineux</span>
-        <button onclick="toggleTheme()" id="themeToggleBtn" class="bg-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-400 flex items-center gap-2">
+        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Thème d'affichage</span>
+        <button onclick="toggleTheme()" id="themeToggleBtn" class="bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-500 dark:text-amber-400 flex items-center gap-2">
           <i id="themeIcon" class="fa-solid fa-moon"></i> <span id="themeLabel">Sombre</span>
         </button>
       </div>
 
       <!-- Team Custom Color Options -->
-      <button onclick="toggleColorModal()" class="w-full bg-slate-900/80 border border-slate-700 hover:bg-slate-900 text-slate-300 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all">
+      <button onclick="toggleColorModal()" class="w-full bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all">
         <span class="flex items-center gap-2">
-          <i class="fa-solid fa-palette text-amber-400"></i> Couleur des Équipes
+          <i class="fa-solid fa-palette text-amber-500 dark:text-amber-400"></i> Couleurs Néons
         </span>
-        <i class="fa-solid fa-chevron-right text-slate-500 text-xs"></i>
+        <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
       </button>
 
-      <hr class="border-slate-700">
+      <hr class="border-slate-200 dark:border-slate-700">
 
       <!-- Clear All Data Button -->
-      <button onclick="clearAllDataPrompt()" class="w-full bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600/30 text-rose-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+      <button onclick="clearAllDataPrompt()" class="w-full bg-rose-500/10 dark:bg-rose-600/20 border border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
         <i class="fa-solid fa-trash-can"></i> Effacer toutes les données
       </button>
     </div>
@@ -90,120 +90,120 @@
   <main class="max-w-md mx-auto w-full p-4 flex-1 flex flex-col gap-4">
     
     <!-- Warning Banner for Forced Roulés -->
-    <div id="rouleWarningBanner" class="hidden bg-amber-500/20 border border-amber-500/50 text-amber-200 p-3 rounded-xl text-xs flex items-center gap-3">
-      <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>
+    <div id="rouleWarningBanner" class="hidden bg-amber-500/20 border border-amber-500/50 text-amber-800 dark:text-amber-200 p-3 rounded-xl text-xs flex items-center gap-3">
+      <i class="fa-solid fa-triangle-exclamation text-amber-500 dark:text-amber-400 text-lg"></i>
       <div>
         <span class="font-bold">Attention !</span> <span id="rouleWarningText">Manche Roulé obligatoire pour cette équipe.</span>
       </div>
     </div>
 
     <!-- Main Scoreboard -->
-    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-xl flex flex-col gap-3">
+    <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl shadow-xl flex flex-col gap-3">
       <div class="grid grid-cols-2 gap-3">
         <!-- Team A (Nous) -->
-        <div id="cardTeamA" class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
-          <div id="trophiesA" class="absolute top-2 left-2 flex gap-1 text-amber-400 text-sm"></div>
+        <div id="cardTeamA" class="flex flex-col items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-700 relative">
+          <div id="trophiesA" class="absolute top-2 left-2 flex gap-1 text-amber-500 dark:text-amber-400 text-sm"></div>
 
-          <div id="teamANameHeader" class="font-black text-indigo-400 text-lg uppercase tracking-wide mb-1">Nous</div>
-          <div id="teamAScore" class="text-4xl font-extrabold text-indigo-400 my-2">0</div>
+          <div id="teamANameHeader" class="font-black text-lg uppercase tracking-wide mb-1">Nous</div>
+          <div id="teamAScore" class="text-4xl font-extrabold my-2">0</div>
           
           <div class="flex gap-1.5 mb-3">
-            <span id="badgeA1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none">
+            <span id="badgeA1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold pointer-events-none">
               Roulé 1
             </span>
-            <span id="badgeA2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-40">
+            <span id="badgeA2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold pointer-events-none opacity-40">
               Roulé 2
             </span>
           </div>
 
-          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700">
-            <input type="checkbox" id="firstDealerA" onchange="setFirstDealer('A')" class="accent-indigo-500 rounded">
-            <span id="labelFirstDealerA" class="text-[10px] text-slate-400 font-medium">Premier carté</span>
+          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-200/80 dark:bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700">
+            <input type="checkbox" id="firstDealerA" onchange="setFirstDealer('A')" class="accent-amber-500 rounded">
+            <span id="labelFirstDealerA" class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Premier carté</span>
           </label>
         </div>
 
         <!-- Team B (Eux) -->
-        <div id="cardTeamB" class="flex flex-col items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 relative">
-          <div id="trophiesB" class="absolute top-2 left-2 flex gap-1 text-amber-400 text-sm"></div>
+        <div id="cardTeamB" class="flex flex-col items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-700 relative">
+          <div id="trophiesB" class="absolute top-2 left-2 flex gap-1 text-amber-500 dark:text-amber-400 text-sm"></div>
 
-          <div id="teamBNameHeader" class="font-black text-emerald-400 text-lg uppercase tracking-wide mb-1">Eux</div>
-          <div id="teamBScore" class="text-4xl font-extrabold text-emerald-400 my-2">0</div>
+          <div id="teamBNameHeader" class="font-black text-lg uppercase tracking-wide mb-1">Eux</div>
+          <div id="teamBScore" class="text-4xl font-extrabold my-2">0</div>
 
           <div class="flex gap-1.5 mb-3">
-            <span id="badgeB1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none">
+            <span id="badgeB1" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold pointer-events-none">
               Roulé 1
             </span>
-            <span id="badgeB2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-40">
+            <span id="badgeB2" class="text-[10px] px-2.5 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold pointer-events-none opacity-40">
               Roulé 2
             </span>
           </div>
 
-          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700">
-            <input type="checkbox" id="firstDealerB" onchange="setFirstDealer('B')" class="accent-emerald-500 rounded">
-            <span id="labelFirstDealerB" class="text-[10px] text-slate-400 font-medium">Premier carté</span>
+          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-200/80 dark:bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700">
+            <input type="checkbox" id="firstDealerB" onchange="setFirstDealer('B')" class="accent-amber-500 rounded">
+            <span id="labelFirstDealerB" class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Premier carté</span>
           </label>
         </div>
       </div>
     </section>
 
     <!-- Score Input Section -->
-    <section id="inputSection" class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-xl flex flex-col gap-4">
+    <section id="inputSection" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl shadow-xl flex flex-col gap-4">
       <div class="flex justify-between items-center flex-wrap gap-2">
-        <div id="activeTeamBadge" class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5">
+        <div id="activeTeamBadge" class="font-bold px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 border border-transparent">
           <i class="fa-solid fa-cards text-[10px]"></i> Carté : Nous
         </div>
         
         <div class="flex items-center gap-2">
-          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
+          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700">
             <input type="checkbox" id="isRouleRound" onchange="updateScorePreview()" class="accent-amber-500 rounded">
-            <span class="text-xs text-slate-300 font-medium">Roulé (x2)</span>
+            <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Roulé (x2)</span>
           </label>
-          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
+          <label class="flex items-center gap-1.5 cursor-pointer bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700">
             <input type="checkbox" id="isBuckeRound" onchange="updateScorePreview()" class="accent-amber-500 rounded">
-            <span class="text-xs text-slate-300 font-medium">Bucké (x2)</span>
+            <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">Bucké (x2)</span>
           </label>
         </div>
       </div>
 
       <!-- Tie Carryover Banner -->
-      <div id="tieBanner" class="hidden bg-indigo-500/20 border border-indigo-500/40 text-indigo-200 px-3 py-1.5 rounded-xl text-xs flex items-center justify-between">
-        <span class="font-semibold"><i class="fa-solid fa-bolt text-indigo-400 mr-1"></i> Égalité manche précédente</span>
+      <div id="tieBanner" class="hidden bg-indigo-500/20 border border-indigo-500/40 text-indigo-800 dark:text-indigo-200 px-3 py-1.5 rounded-xl text-xs flex items-center justify-between">
+        <span class="font-semibold"><i class="fa-solid fa-bolt text-indigo-500 dark:text-indigo-400 mr-1"></i> Égalité manche précédente</span>
         <span class="bg-indigo-600 text-white font-bold px-2 py-0.5 rounded text-[10px]">Points x2</span>
       </div>
 
       <!-- Preview Score Addition -->
-      <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3 text-center">
-        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+      <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/50 rounded-xl p-3 text-center">
+        <div class="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400 mb-1">
           <span>Impact sur le score :</span>
-          <span id="multiplierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700">x1</span>
+          <span id="multiplierBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-amber-600 dark:text-amber-300 border border-slate-300 dark:border-slate-700">x1</span>
         </div>
         <div class="flex justify-around items-center font-bold text-sm">
-          <div id="previewNetA" class="text-slate-400">Nous : +0 pt</div>
-          <div class="text-slate-600">|</div>
-          <div id="previewNetB" class="text-slate-400">Eux : +0 pt</div>
+          <div id="previewNetA" class="text-slate-500">Nous : +0 pt</div>
+          <div class="text-slate-400 dark:text-slate-600">|</div>
+          <div id="previewNetB" class="text-slate-500">Eux : +0 pt</div>
         </div>
       </div>
 
       <!-- Slider & Controls -->
-      <div class="bg-slate-900 p-3 rounded-xl border border-slate-700/60">
+      <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60">
         <div class="flex justify-between items-center mb-2">
-          <span class="text-xs font-semibold text-indigo-300" id="teamALabelScore">Nous: 30 pts</span>
-          <span class="text-xs font-semibold text-emerald-300" id="teamBLabelScore">Eux: 30 pts</span>
+          <span class="text-xs font-bold" id="teamALabelScore">Nous: 30 pts</span>
+          <span class="text-xs font-bold" id="teamBLabelScore">Eux: 30 pts</span>
         </div>
 
-        <input type="range" id="rawScoreSlider" min="0" max="60" value="30" class="w-full bg-slate-700 h-2 rounded-lg appearance-none cursor-pointer">
+        <input type="range" id="rawScoreSlider" min="0" max="60" value="30" class="w-full bg-slate-300 dark:bg-slate-700 h-2 rounded-lg appearance-none cursor-pointer">
 
         <div class="flex justify-between items-center mt-3">
           <div class="flex gap-1">
-            <button onclick="adjustScoreForNous(5)" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+5 Nous</button>
-            <button onclick="adjustScoreForNous(1)" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+1</button>
+            <button onclick="adjustScoreForNous(5)" id="btnPlus5Nous" class="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 px-3 py-1 rounded border border-slate-300 dark:border-slate-700 text-xs font-bold">+5 Nous</button>
+            <button onclick="adjustScoreForNous(1)" id="btnPlus1Nous" class="bg-white dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1 rounded border border-slate-300 dark:border-slate-700 text-xs font-bold">+1</button>
           </div>
           
-          <button onclick="setScoreForNous(30)" class="text-xs text-slate-400 underline font-medium">Égalité (30-30)</button>
+          <button onclick="setScoreForNous(30)" class="text-xs text-slate-500 dark:text-slate-400 underline font-medium">Égalité (30-30)</button>
 
           <div class="flex gap-1">
-            <button onclick="adjustScoreForNous(-1)" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+1</button>
-            <button onclick="adjustScoreForNous(-5)" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-1 rounded border border-slate-700 text-xs font-bold">+5 Eux</button>
+            <button onclick="adjustScoreForNous(-1)" id="btnPlus1Eux" class="bg-white dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1 rounded border border-slate-300 dark:border-slate-700 text-xs font-bold">+1</button>
+            <button onclick="adjustScoreForNous(-5)" id="btnPlus5Eux" class="bg-white dark:bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded border border-slate-300 dark:border-slate-700 text-xs font-bold">+5 Eux</button>
           </div>
         </div>
       </div>
@@ -215,95 +215,105 @@
     </section>
 
     <!-- Game Over Screen -->
-    <section id="gameOverSection" class="hidden bg-slate-800 border border-amber-500/50 p-6 rounded-2xl text-center flex flex-col items-center gap-4 shadow-2xl">
-      <i class="fa-solid fa-trophy text-amber-400 text-5xl animate-bounce"></i>
-      <h2 class="text-2xl font-black text-slate-100">Victoire Finale !</h2>
-      <p id="winnerText" class="text-amber-300 font-bold text-lg"></p>
+    <section id="gameOverSection" class="hidden bg-white dark:bg-slate-800 border border-amber-500/50 p-6 rounded-2xl text-center flex flex-col items-center gap-4 shadow-2xl">
+      <i class="fa-solid fa-trophy text-amber-500 dark:text-amber-400 text-5xl animate-bounce"></i>
+      <h2 class="text-2xl font-black text-slate-800 dark:text-slate-100">Victoire Finale !</h2>
+      <p id="winnerText" class="text-amber-500 dark:text-amber-300 font-bold text-lg"></p>
       <button onclick="resetGame()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl">
         Nouvelle Partie
       </button>
     </section>
 
     <!-- History with Set Tabs -->
-    <section class="bg-slate-800 border border-slate-700 p-4 rounded-2xl flex flex-col gap-3">
+    <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl flex flex-col gap-3">
       <div class="flex justify-between items-center">
-        <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Historique
+        <h2 class="font-bold text-slate-800 dark:text-slate-200 text-sm uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-amber-500 dark:text-amber-400"></i> Historique
         </h2>
-        <button onclick="undoLastRound()" id="undoBtn" class="text-xs text-amber-400 hover:underline disabled:opacity-30 disabled:no-underline" disabled>
+        <button onclick="undoLastRound()" id="undoBtn" class="text-xs text-amber-500 dark:text-amber-400 hover:underline disabled:opacity-30 disabled:no-underline" disabled>
           <i class="fa-solid fa-rotate-left"></i> Annuler
         </button>
       </div>
 
-      <!-- Set Tabs (Manche 1, Manche 2, Manche 3) -->
-      <div class="flex gap-1.5 border-b border-slate-700 pb-2 overflow-x-auto" id="setTabsContainer"></div>
+      <div class="flex gap-1.5 border-b border-slate-200 dark:border-slate-700 pb-2 overflow-x-auto" id="setTabsContainer"></div>
 
       <div id="historyList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-        <div class="text-center text-xs text-slate-500 py-4">Aucune donne enregistrée.</div>
+        <div class="text-center text-xs text-slate-400 py-4">Aucune donne enregistrée.</div>
       </div>
     </section>
 
   </main>
 
-  <!-- Team Color Picker Modal -->
+  <!-- Team Neon Color Picker Modal -->
   <div id="colorModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-xs rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
-      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-        <h3 class="font-bold text-slate-100 text-sm uppercase flex items-center gap-2">
-          <i class="fa-solid fa-palette text-amber-400"></i> Couleur des Équipes
+    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-xs rounded-2xl p-5 shadow-2xl flex flex-col gap-5">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3">
+        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm uppercase flex items-center gap-2">
+          <i class="fa-solid fa-palette text-amber-500 dark:text-amber-400"></i> Couleurs Néons
         </h3>
-        <button onclick="toggleColorModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="toggleColorModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-4">
         <div>
-          <label class="text-xs text-slate-300 font-semibold mb-1 block">Équipe Nous :</label>
-          <input type="color" id="colorPickerA" value="#818cf8" class="w-full h-9 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer p-1">
+          <label class="text-xs text-slate-700 dark:text-slate-300 font-bold mb-2 block">Équipe Nous :</label>
+          <div class="flex justify-between gap-2" id="neonPaletteA"></div>
         </div>
+
         <div>
-          <label class="text-xs text-slate-300 font-semibold mb-1 block">Équipe Eux :</label>
-          <input type="color" id="colorPickerB" value="#34d399" class="w-full h-9 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer p-1">
+          <label class="text-xs text-slate-700 dark:text-slate-300 font-bold mb-2 block">Équipe Eux :</label>
+          <div class="flex justify-between gap-2" id="neonPaletteB"></div>
         </div>
       </div>
 
-      <button onclick="applyCustomColors()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs">
-        Appliquer les couleurs
+      <button onclick="closeColorModal()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs">
+        Valider
       </button>
     </div>
   </div>
 
   <!-- Styled Custom Alert / Confirm Modal -->
   <div id="customModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-xs rounded-2xl p-5 shadow-2xl flex flex-col items-center text-center gap-3">
-      <div id="modalIcon" class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
+    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-xs rounded-2xl p-5 shadow-2xl flex flex-col items-center text-center gap-3">
+      <div id="modalIcon" class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center text-xl">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
-      <h4 id="modalTitle" class="font-bold text-slate-100 text-base">Attention</h4>
-      <p id="modalMessage" class="text-xs text-slate-300 leading-relaxed"></p>
+      <h4 id="modalTitle" class="font-bold text-slate-800 dark:text-slate-100 text-base">Attention</h4>
+      <p id="modalMessage" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed"></p>
       
       <div id="modalActions" class="flex gap-2 w-full mt-2">
-        <button id="modalBtnCancel" onclick="closeCustomModal(false)" class="hidden flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2 rounded-xl text-xs">Annuler</button>
+        <button id="modalBtnCancel" onclick="closeCustomModal(false)" class="hidden flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold py-2 rounded-xl text-xs">Annuler</button>
         <button id="modalBtnConfirm" onclick="closeCustomModal(true)" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-xl text-xs">OK</button>
       </div>
     </div>
   </div>
 
   <script>
+    // Neon Preset Palette
+    const neonColors = [
+      { name: "Indigo Néon", hex: "#818cf8" },
+      { name: "Cyan Néon", hex: "#38bdf8" },
+      { name: "Rose Néon", hex: "#f472b6" },
+      { name: "Émeraude Néon", hex: "#34d399" },
+      { name: "Jaune Néon", hex: "#facc15" },
+      { name: "Orange Néon", hex: "#fb923c" }
+    ];
+
+    let customColorA = "#818cf8"; // Default Indigo
+    let customColorB = "#34d399"; // Default Emerald
+
     let pastSetsHistory = [];
     let currentSetRounds = [];
     let activeTabSetIndex = 0;
 
     let setsWon = { A: 0, B: 0 };
-    let setStartDealerTeam = 'A'; // Team starting the FIRST deal of the CURRENT set
+    let setStartDealerTeam = 'A';
     let firstDealerLocked = false;
     let isPreviousTie = false;
     let rouleAlertShownTeamA = false;
     let rouleAlertShownTeamB = false;
     const maxRounds = 12;
     let modalCallback = null;
-
-    let customColorA = "#818cf8"; // Indigo
-    let customColorB = "#34d399"; // Emerald
 
     const rawScoreSlider = document.getElementById('rawScoreSlider');
     const teamALabelScore = document.getElementById('teamALabelScore');
@@ -330,26 +340,56 @@
 
     function toggleColorModal() {
       toggleBurgerMenu();
+      renderNeonPalettes();
       document.getElementById('colorModal').classList.toggle('hidden');
     }
 
+    function closeColorModal() {
+      document.getElementById('colorModal').classList.add('hidden');
+    }
+
     function toggleTheme() {
-      const isDark = document.documentElement.classList.toggle('dark');
+      const htmlEl = document.documentElement;
+      const isDark = htmlEl.classList.toggle('dark');
+      
       document.getElementById('themeIcon').className = isDark ? "fa-solid fa-moon" : "fa-solid fa-sun";
       document.getElementById('themeLabel').textContent = isDark ? "Sombre" : "Clair";
     }
 
-    function applyCustomColors() {
-      customColorA = document.getElementById('colorPickerA').value;
-      customColorB = document.getElementById('colorPickerB').value;
+    function renderNeonPalettes() {
+      const containerA = document.getElementById('neonPaletteA');
+      const containerB = document.getElementById('neonPaletteB');
 
+      containerA.innerHTML = neonColors.map(c => `
+        <button onclick="selectColor('A', '${c.hex}')" class="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${customColorA === c.hex ? 'border-amber-400 scale-110 shadow-lg' : 'border-transparent'}" style="background-color: ${c.hex}"></button>
+      `).join('');
+
+      containerB.innerHTML = neonColors.map(c => `
+        <button onclick="selectColor('B', '${c.hex}')" class="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${customColorB === c.hex ? 'border-amber-400 scale-110 shadow-lg' : 'border-transparent'}" style="background-color: ${c.hex}"></button>
+      `).join('');
+    }
+
+    function selectColor(team, hex) {
+      if (team === 'A') customColorA = hex;
+      if (team === 'B') customColorB = hex;
+      renderNeonPalettes();
+      applyTeamColors();
+      updateUI();
+    }
+
+    function applyTeamColors() {
       document.getElementById('teamANameHeader').style.color = customColorA;
       document.getElementById('teamAScore').style.color = customColorA;
+      document.getElementById('cardTeamA').style.borderColor = customColorA;
+
       document.getElementById('teamBNameHeader').style.color = customColorB;
       document.getElementById('teamBScore').style.color = customColorB;
+      document.getElementById('cardTeamB').style.borderColor = customColorB;
 
-      document.getElementById('colorModal').classList.add('hidden');
-      updateUI();
+      document.getElementById('teamALabelScore').style.color = customColorA;
+      document.getElementById('teamBLabelScore').style.color = customColorB;
+      document.getElementById('btnPlus5Nous').style.color = customColorA;
+      document.getElementById('btnPlus5Eux').style.color = customColorB;
     }
 
     async function clearAllDataPrompt() {
@@ -393,8 +433,11 @@
       document.getElementById('firstDealerA').checked = (team === 'A');
       document.getElementById('firstDealerB').checked = (team === 'B');
 
-      document.getElementById('labelFirstDealerA').className = team === 'A' ? "text-[10px] text-amber-400 font-bold" : "text-[10px] text-slate-400 font-medium";
-      document.getElementById('labelFirstDealerB').className = team === 'B' ? "text-[10px] text-amber-400 font-bold" : "text-[10px] text-slate-400 font-medium";
+      document.getElementById('labelFirstDealerA').className = team === 'A' ? "text-[10px] font-bold" : "text-[10px] text-slate-400 font-medium";
+      document.getElementById('labelFirstDealerA').style.color = team === 'A' ? customColorA : "";
+      
+      document.getElementById('labelFirstDealerB').className = team === 'B' ? "text-[10px] font-bold" : "text-[10px] text-slate-400 font-medium";
+      document.getElementById('labelFirstDealerB').style.color = team === 'B' ? customColorB : "";
 
       updateTurnIndicator();
       checkRouleWarnings();
@@ -416,9 +459,13 @@
       if (activeTeam === 'A') {
         badge.innerHTML = `<i class="fa-solid fa-cards text-[10px]"></i> Carté : Nous`;
         badge.style.color = customColorA;
+        badge.style.backgroundColor = `${customColorA}20`;
+        badge.style.borderColor = `${customColorA}40`;
       } else {
         badge.innerHTML = `<i class="fa-solid fa-cards text-[10px]"></i> Carté : Eux`;
         badge.style.color = customColorB;
+        badge.style.backgroundColor = `${customColorB}20`;
+        badge.style.borderColor = `${customColorB}40`;
       }
     }
 
@@ -433,22 +480,22 @@
       const badgeA1 = document.getElementById('badgeA1');
       const badgeA2 = document.getElementById('badgeA2');
       badgeA1.className = roulesA >= 1 
-        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20 pointer-events-none" 
-        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-100";
+        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md pointer-events-none" 
+        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold pointer-events-none opacity-100";
       
       badgeA2.className = roulesA >= 2 
-        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20 pointer-events-none" 
-        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-40";
+        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md pointer-events-none" 
+        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold pointer-events-none opacity-40";
 
       const badgeB1 = document.getElementById('badgeB1');
       const badgeB2 = document.getElementById('badgeB2');
       badgeB1.className = roulesB >= 1 
-        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20 pointer-events-none" 
-        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-100";
+        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md pointer-events-none" 
+        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold pointer-events-none opacity-100";
       
       badgeB2.className = roulesB >= 2 
-        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md shadow-amber-400/20 pointer-events-none" 
-        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-semibold transition-all pointer-events-none opacity-40";
+        ? "text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black transition-all shadow-md pointer-events-none" 
+        : "text-[10px] px-2.5 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold pointer-events-none opacity-40";
     }
 
     function adjustScoreForNous(delta) {
@@ -502,9 +549,9 @@
 
       multiplierBadge.textContent = `x${mult}`;
       if (mult > 1) {
-        multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40";
+        multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/40";
       } else {
-        multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700";
+        multiplierBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-amber-600 dark:text-amber-300 border border-slate-300 dark:border-slate-700";
       }
 
       previewNetA.textContent = `Nous : +${netA} pt${netA > 1 ? 's' : ''}${isCapotA ? ' (CAPOT)' : ''}`;
@@ -604,12 +651,12 @@
           const totB = pastSetsHistory[i].reduce((s, r) => s + r.netB, 0);
           scoreBadge = `<span class="text-[9px] opacity-80 font-normal">(${totA}-${totB})</span>`;
         } else if (isCurrentActiveSet) {
-          scoreBadge = `<span class="text-[9px] text-amber-400 font-bold">• en cours</span>`;
+          scoreBadge = `<span class="text-[9px] text-amber-500 dark:text-amber-400 font-bold">• en cours</span>`;
         }
 
-        let tabStyle = "bg-slate-900 text-slate-400 border-slate-700 hover:text-slate-200";
+        let tabStyle = "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:text-slate-900 dark:hover:text-slate-200";
         if (isTabSelected) {
-          tabStyle = "bg-amber-400 text-slate-950 font-black border-amber-400 shadow-md shadow-amber-400/20";
+          tabStyle = "bg-amber-400 text-slate-950 font-black border-amber-400 shadow-md";
         }
 
         tabsHtml += `
@@ -633,33 +680,35 @@
       }
 
       if (roundsToDisplay.length === 0) {
-        historyList.innerHTML = '<div class="text-center text-xs text-slate-500 py-4">Aucune donne enregistrée pour cette manche.</div>';
+        historyList.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">Aucune donne enregistrée pour cette manche.</div>';
       } else {
         historyList.innerHTML = roundsToDisplay.map((r, i) => {
           const isWinnerA = r.netA > r.netB;
           const isWinnerB = r.netB > r.netA;
           
-          let cardBgClass = "bg-slate-900/80 border-slate-700/50";
+          let cardBgClass = "bg-slate-100 dark:bg-slate-900/80 border-slate-200 dark:border-slate-700/50";
           if (isWinnerA) {
-            cardBgClass = "bg-indigo-950/40 border-indigo-500/30";
+            cardBgClass = "bg-slate-100 dark:bg-slate-900/90 border-l-4";
           } else if (isWinnerB) {
-            cardBgClass = "bg-emerald-950/40 border-emerald-500/30";
+            cardBgClass = "bg-slate-100 dark:bg-slate-900/90 border-l-4";
           }
 
+          const borderStyle = isWinnerA ? `border-left-color: ${customColorA}` : (isWinnerB ? `border-left-color: ${customColorB}` : '');
+
           return `
-            <div class="${cardBgClass} p-2.5 rounded-xl border flex justify-between items-center text-xs">
+            <div style="${borderStyle}" class="${cardBgClass} p-2.5 rounded-xl border flex justify-between items-center text-xs">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-bold text-slate-400">D${i+1}</span>
-                ${r.isCapot ? '<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold">CAPOT</span>' : ''}
-                ${r.isRoule ? '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Roulé</span>' : ''}
-                ${r.isBucke ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Bucké</span>' : ''}
-                ${r.wasTieCarryover ? '<span class="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">x2 Égalité</span>' : ''}
+                <span class="font-bold text-slate-500 dark:text-slate-400">D${i+1}</span>
+                ${r.isCapot ? '<span class="bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold">CAPOT</span>' : ''}
+                ${r.isRoule ? '<span class="bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Roulé</span>' : ''}
+                ${r.isBucke ? '<span class="bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">Bucké</span>' : ''}
+                ${r.wasTieCarryover ? '<span class="bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-semibold">x2 Égalité</span>' : ''}
                 ${r.mult > 1 ? `<span class="text-[9px] font-bold text-slate-400">(x${r.mult})</span>` : ''}
               </div>
               <div class="flex items-center gap-3 font-bold text-sm shrink-0">
-                <span style="color: ${r.netA > 0 ? customColorA : '#64748b'}" class="font-black">+${r.netA}</span>
-                <span class="text-slate-600 text-xs">-</span>
-                <span style="color: ${r.netB > 0 ? customColorB : '#64748b'}" class="font-black">+${r.netB}</span>
+                <span style="color: ${r.netA > 0 ? customColorA : '#94a3b8'}" class="font-black">+${r.netA}</span>
+                <span class="text-slate-400 text-xs">-</span>
+                <span style="color: ${r.netB > 0 ? customColorB : '#94a3b8'}" class="font-black">+${r.netB}</span>
               </div>
             </div>
           `;
@@ -683,6 +732,7 @@
         tieBanner.classList.add('hidden');
       }
 
+      applyTeamColors();
       renderTabs();
       renderHistoryList();
       renderRouleBadges();
