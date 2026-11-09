@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Compteur Manille (Base 60)</title>
+  <title>Compteur Manille (Base 60 - Temps Réel)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      darkMode: 'class',
-    }
+    tailwind.config = { darkMode: 'class' };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- PeerJS pour la connexion P2P en temps réel -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
   <style>
     body { touch-action: manipulation; }
     *, ::before, ::after {
@@ -30,6 +32,11 @@
 </head>
 <body class="bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen pb-12 flex flex-col font-sans select-none">
 
+  <!-- Spectator Live Mode Banner -->
+  <div id="spectatorBanner" class="hidden bg-emerald-500 text-slate-950 px-4 py-2 text-center text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-md">
+    <i class="fa-solid fa-tower-broadcast animate-pulse"></i> Mode Spectateur — En direct
+  </div>
+
   <!-- Header -->
   <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-4 sticky top-0 z-20 shadow-md flex justify-between items-center">
     <div class="max-w-md mx-auto w-full flex justify-between items-center">
@@ -44,7 +51,6 @@
           <span id="currentRoundDisplay" class="text-amber-500 dark:text-amber-400 font-bold">1</span> / 12
         </div>
 
-        <!-- Burger Menu Button -->
         <button onclick="toggleBurgerMenu()" class="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-lg focus:outline-none">
           <i class="fa-solid fa-bars text-xl"></i>
         </button>
@@ -78,10 +84,18 @@
         <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
       </button>
 
+      <!-- Live Share QR Code -->
+      <button onclick="showQRCodeModal()" class="w-full bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all">
+        <span class="flex items-center gap-2">
+          <i class="fa-solid fa-qrcode text-amber-500 dark:text-amber-400"></i> Partage Temps Réel
+        </span>
+        <span id="connectedPeersBadge" class="text-[10px] bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full font-bold">0 Spectateur</span>
+      </button>
+
       <hr class="border-slate-200 dark:border-slate-700">
 
       <!-- Clear All Data Button -->
-      <button onclick="clearAllDataPrompt()" class="w-full bg-rose-500/10 dark:bg-rose-600/20 border border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+      <button onclick="clearAllDataPrompt()" id="btnClearData" class="w-full bg-rose-500/10 dark:bg-rose-600/20 border border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
         <i class="fa-solid fa-trash-can"></i> Effacer toutes les données
       </button>
     </div>
@@ -219,7 +233,7 @@
       <i class="fa-solid fa-trophy text-amber-500 dark:text-amber-400 text-5xl animate-bounce"></i>
       <h2 class="text-2xl font-black text-slate-800 dark:text-slate-100">Victoire Finale !</h2>
       <p id="winnerText" class="text-amber-500 dark:text-amber-300 font-bold text-lg"></p>
-      <button onclick="resetGame()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl">
+      <button onclick="resetGame()" id="btnRestartGame" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl">
         Nouvelle Partie
       </button>
     </section>
@@ -243,6 +257,30 @@
     </section>
 
   </main>
+
+  <!-- Live QR Code Modal -->
+  <div id="qrModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-xs rounded-2xl p-5 shadow-2xl flex flex-col items-center text-center gap-4">
+      <div class="flex justify-between items-center w-full border-b border-slate-200 dark:border-slate-700 pb-2">
+        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm uppercase flex items-center gap-2">
+          <i class="fa-solid fa-qrcode text-amber-500 dark:text-amber-400"></i> Scanner pour suivre
+        </h3>
+        <button onclick="closeQRCodeModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="bg-white p-3 rounded-xl shadow-inner border border-slate-200">
+        <div id="qrcode"></div>
+      </div>
+
+      <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+        Les joueurs et spectateurs peuvent scanner ce code. Leur tableau de score se mettra à jour <span class="font-bold text-emerald-500">en direct</span>.
+      </p>
+
+      <button onclick="closeQRCodeModal()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-xl text-xs">
+        Fermer
+      </button>
+    </div>
+  </div>
 
   <!-- Team Neon Color Picker Modal -->
   <div id="colorModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -289,7 +327,6 @@
   </div>
 
   <script>
-    // Neon Preset Palette
     const neonColors = [
       { name: "Indigo Néon", hex: "#818cf8" },
       { name: "Cyan Néon", hex: "#38bdf8" },
@@ -299,8 +336,8 @@
       { name: "Orange Néon", hex: "#fb923c" }
     ];
 
-    let customColorA = "#818cf8"; // Default Indigo
-    let customColorB = "#34d399"; // Default Emerald
+    let customColorA = "#818cf8";
+    let customColorB = "#34d399";
 
     let pastSetsHistory = [];
     let currentSetRounds = [];
@@ -314,6 +351,12 @@
     let rouleAlertShownTeamB = false;
     const maxRounds = 12;
     let modalCallback = null;
+
+    // Realtime P2P State variables
+    let peer = null;
+    let peerConnections = [];
+    let isSpectator = false;
+    let peerId = null;
 
     const rawScoreSlider = document.getElementById('rawScoreSlider');
     const teamALabelScore = document.getElementById('teamALabelScore');
@@ -333,6 +376,115 @@
     const tieBanner = document.getElementById('tieBanner');
 
     rawScoreSlider.addEventListener('input', updateScorePreview);
+
+    // Initialisation du PeerJS (Hôte ou Spectateur)
+    function initRealtime() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomHostId = urlParams.get('room');
+
+      if (roomHostId) {
+        // SPECTATOR MODE
+        isSpectator = true;
+        document.getElementById('inputSection').classList.add('hidden');
+        document.getElementById('spectatorBanner').classList.remove('hidden');
+        document.getElementById('firstDealerA').disabled = true;
+        document.getElementById('firstDealerB').disabled = true;
+        document.getElementById('undoBtn').classList.add('hidden');
+        document.getElementById('btnClearData').classList.add('hidden');
+
+        peer = new Peer();
+        peer.on('open', () => {
+          const conn = peer.connect(roomHostId);
+          conn.on('data', (data) => {
+            receiveGameState(data);
+          });
+        });
+      } else {
+        // HOST MODE
+        peer = new Peer();
+        peer.on('open', (id) => {
+          peerId = id;
+        });
+
+        peer.on('connection', (conn) => {
+          peerConnections.push(conn);
+          updatePeerBadge();
+          // Send current state to newly connected spectator
+          conn.on('open', () => {
+            conn.send(serializeState());
+          });
+        });
+      }
+    }
+
+    function serializeState() {
+      return {
+        pastSetsHistory,
+        currentSetRounds,
+        setsWon,
+        setStartDealerTeam,
+        firstDealerLocked,
+        isPreviousTie,
+        customColorA,
+        customColorB
+      };
+    }
+
+    function broadcastState() {
+      if (isSpectator || peerConnections.length === 0) return;
+      const state = serializeState();
+      peerConnections.forEach(conn => {
+        if (conn.open) conn.send(state);
+      });
+    }
+
+    function receiveGameState(state) {
+      pastSetsHistory = state.pastSetsHistory;
+      currentSetRounds = state.currentSetRounds;
+      setsWon = state.setsWon;
+      setStartDealerTeam = state.setStartDealerTeam;
+      firstDealerLocked = state.firstDealerLocked;
+      isPreviousTie = state.isPreviousTie;
+      customColorA = state.customColorA;
+      customColorB = state.customColorB;
+
+      document.getElementById('firstDealerA').checked = (setStartDealerTeam === 'A');
+      document.getElementById('firstDealerB').checked = (setStartDealerTeam === 'B');
+
+      renderTrophies();
+      updateUI(false);
+    }
+
+    function updatePeerBadge() {
+      const badge = document.getElementById('connectedPeersBadge');
+      const count = peerConnections.filter(c => c.open).length;
+      badge.textContent = `${count} Spectateur${count > 1 ? 's' : ''}`;
+    }
+
+    function showQRCodeModal() {
+      toggleBurgerMenu();
+      if (!peerId) {
+        showCustomModal("Connexion en cours, réessayez dans un instant...", false, "Connexion");
+        return;
+      }
+
+      const currentUrl = window.location.origin + window.location.pathname;
+      const shareUrl = `${currentUrl}?room=${peerId}`;
+
+      const qrContainer = document.getElementById('qrcode');
+      qrContainer.innerHTML = '';
+      new QRCode(qrContainer, {
+        text: shareUrl,
+        width: 180,
+        height: 180
+      });
+
+      document.getElementById('qrModal').classList.remove('hidden');
+    }
+
+    function closeQRCodeModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
 
     function toggleBurgerMenu() {
       document.getElementById('burgerDrawer').classList.toggle('hidden');
@@ -441,6 +593,7 @@
 
       updateTurnIndicator();
       checkRouleWarnings();
+      broadcastState();
     }
 
     function getActiveTeam() {
@@ -499,11 +652,13 @@
     }
 
     function adjustScoreForNous(delta) {
+      if (isSpectator) return;
       let currentVal = parseInt(rawScoreSlider.value);
       setScoreForNous(currentVal + delta);
     }
 
     function setScoreForNous(val) {
+      if (isSpectator) return;
       val = Math.max(0, Math.min(60, val));
       rawScoreSlider.value = val;
       updateScorePreview();
@@ -562,7 +717,7 @@
     }
 
     function addRound() {
-      if (currentSetRounds.length >= maxRounds) return;
+      if (isSpectator || currentSetRounds.length >= maxRounds) return;
 
       if (!firstDealerLocked) {
         firstDealerLocked = true;
@@ -610,7 +765,7 @@
     }
 
     function undoLastRound() {
-      if (currentSetRounds.length === 0) return;
+      if (isSpectator || currentSetRounds.length === 0) return;
       currentSetRounds.pop();
       
       if (currentSetRounds.length > 0) {
@@ -716,7 +871,7 @@
       }
     }
 
-    function updateUI() {
+    function updateUI(shouldBroadcast = true) {
       let totalA = currentSetRounds.reduce((sum, r) => sum + r.netA, 0);
       let totalB = currentSetRounds.reduce((sum, r) => sum + r.netB, 0);
 
@@ -739,6 +894,10 @@
       updateTurnIndicator();
       checkRouleWarnings();
       updateScorePreview();
+
+      if (shouldBroadcast) {
+        broadcastState();
+      }
     }
 
     async function checkRouleWarnings() {
@@ -764,7 +923,7 @@
         isRouleRound.disabled = true;
 
         const alertKey = currentTeam === 'A' ? rouleAlertShownTeamA : rouleAlertShownTeamB;
-        if (!alertKey) {
+        if (!alertKey && !isSpectator) {
           if (currentTeam === 'A') rouleAlertShownTeamA = true;
           else rouleAlertShownTeamB = true;
 
@@ -777,7 +936,7 @@
         }
       } else {
         rouleWarningBanner.classList.add('hidden');
-        isRouleRound.disabled = false;
+        if (!isSpectator) isRouleRound.disabled = false;
       }
     }
 
@@ -798,7 +957,8 @@
         triggerGameOver();
       } else {
         const nextSetStartTeam = (setStartDealerTeam === 'A') ? 'B' : 'A';
-        showCustomModal(`Manche terminée ! ${totalA > totalB ? 'Nous gagnons' : 'Eux gagnent'} cette manche (${totalA} - ${totalB}). Début de la manche suivante.`, false, "Fin de Manche", "fa-trophy").then(() => {
+        
+        const nextStepAction = () => {
           currentSetRounds = [];
           isPreviousTie = false;
           rouleAlertShownTeamA = false;
@@ -813,7 +973,13 @@
 
           renderRouleBadges();
           updateUI();
-        });
+        };
+
+        if (!isSpectator) {
+          showCustomModal(`Manche terminée ! ${totalA > totalB ? 'Nous gagnons' : 'Eux gagnent'} cette manche (${totalA} - ${totalB}). Début de la manche suivante.`, false, "Fin de Manche", "fa-trophy").then(nextStepAction);
+        } else {
+          nextStepAction();
+        }
       }
     }
 
@@ -830,6 +996,10 @@
       const gameOverEl = document.getElementById('gameOverSection');
       gameOverEl.classList.remove('hidden');
 
+      if (isSpectator) {
+        document.getElementById('btnRestartGame').classList.add('hidden');
+      }
+
       const winnerText = document.getElementById('winnerText');
       if (setsWon.A > setsWon.B) {
         winnerText.textContent = `Victoire de "Nous" en 2 manches gagnantes !`;
@@ -841,6 +1011,7 @@
     }
 
     function resetGame() {
+      if (isSpectator) return;
       pastSetsHistory = [];
       currentSetRounds = [];
       activeTabSetIndex = 0;
@@ -864,10 +1035,11 @@
       updateUI();
     }
 
-    // Init
+    // Init App & Realtime P2P
     setFirstDealer('A');
     renderRouleBadges();
-    updateUI();
+    updateUI(false);
+    initRealtime();
   </script>
 </body>
 </html>
