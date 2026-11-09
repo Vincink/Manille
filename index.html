@@ -358,12 +358,21 @@
     let isSpectator = false;
     let peerId = null;
 
+    // Configuration WebRTC étendue avec serveurs STUN/TURN publics gratuits de secours
     const p2pConfig = {
+      host: '0.peerjs.com',
+      port: 443,
+      path: '/',
+      secure: true,
+      debug: 1,
       config: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' }
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:stun3.l.google.com:19302' },
+          { urls: 'stun:stun4.l.google.com:19302' },
+          { urls: 'stun:global.stun.twilio.com:3478' }
         ]
       }
     };
@@ -435,32 +444,53 @@
     }
 
     function connectAsSpectator(targetRoomId) {
-      document.getElementById('spectatorStatus').textContent = "Connexion en cours...";
+      const statusEl = document.getElementById('spectatorStatus');
+      statusEl.textContent = "Connexion en cours...";
       
       peer = new Peer(p2pConfig);
 
       peer.on('open', () => {
-        const conn = peer.connect(targetRoomId, { reliable: true });
-
-        conn.on('open', () => {
-          document.getElementById('spectatorStatus').textContent = "EN DIRECT";
-          conn.on('data', (data) => {
-            receiveGameState(data);
-          });
-        });
-
-        conn.on('close', () => {
-          document.getElementById('spectatorStatus').textContent = "Déconnecté";
-        });
-
-        conn.on('error', (err) => {
-          document.getElementById('spectatorStatus').textContent = "Erreur de connexion";
-        });
+        makeConnection(targetRoomId);
       });
 
       peer.on('error', (err) => {
-        document.getElementById('spectatorStatus').textContent = "Échec de connexion";
+        console.error("Erreur Spectateur PeerJS:", err);
+        statusEl.textContent = "Échec connexion serveur";
+        // Tentative de reconnexion après 3 secondes
+        setTimeout(() => connectAsSpectator(targetRoomId), 3000);
       });
+    }
+
+    function makeConnection(targetRoomId) {
+      const statusEl = document.getElementById('spectatorStatus');
+      const conn = peer.connect(targetRoomId, { reliable: true });
+
+      let connected = false;
+
+      conn.on('open', () => {
+        connected = true;
+        statusEl.textContent = "EN DIRECT";
+        conn.on('data', (data) => {
+          receiveGameState(data);
+        });
+      });
+
+      conn.on('close', () => {
+        statusEl.textContent = "Déconnecté - Reconnexion...";
+        setTimeout(() => makeConnection(targetRoomId), 2000);
+      });
+
+      conn.on('error', () => {
+        statusEl.textContent = "Erreur liaison - Reconnexion...";
+        setTimeout(() => makeConnection(targetRoomId), 2000);
+      });
+
+      // Timeout de secours si pas de réponse en 5 secondes
+      setTimeout(() => {
+        if (!connected) {
+          statusEl.textContent = "Recherche de l'hôte...";
+        }
+      }, 5000);
     }
 
     function serializeState() {
