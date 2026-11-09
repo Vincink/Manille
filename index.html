@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Compteur Manille (Base 60 - Temps Réel)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { darkMode: 'class' };
-  </script>
+  <script>tailwind.config = { darkMode: 'class' };</script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -33,7 +31,7 @@
 
   <!-- Spectator Live Mode Banner -->
   <div id="spectatorBanner" class="hidden bg-emerald-500 text-slate-950 px-4 py-2 text-center text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-md">
-    <i class="fa-solid fa-tower-broadcast animate-pulse"></i> Mode Spectateur — En direct
+    <i class="fa-solid fa-tower-broadcast animate-pulse"></i> Mode Spectateur — <span id="spectatorStatus">Connexion en cours...</span>
   </div>
 
   <!-- Header -->
@@ -50,7 +48,6 @@
           <span id="currentRoundDisplay" class="text-amber-500 dark:text-amber-400 font-bold">1</span> / 12
         </div>
 
-        <!-- Burger Menu Button (Masqué en mode spectateur) -->
         <button id="burgerBtn" onclick="toggleBurgerMenu()" class="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-lg focus:outline-none">
           <i class="fa-solid fa-bars text-xl"></i>
         </button>
@@ -276,6 +273,10 @@
         Les joueurs et spectateurs peuvent scanner ce code. Leur tableau de score se mettra à jour <span class="font-bold text-emerald-500">en direct</span>.
       </p>
 
+      <button onclick="copyShareLink()" class="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-2">
+        <i class="fa-solid fa-link"></i> <span id="btnCopyText">Copier le lien</span>
+      </button>
+
       <button onclick="closeQRCodeModal()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-xl text-xs">
         Fermer
       </button>
@@ -380,58 +381,76 @@
       const urlParams = new URLSearchParams(window.location.search);
       const roomHostId = urlParams.get('room');
 
-      // Configuration explicite du serveur PeerJS avec SSL (Fix de connexion)
-      const peerOptions = {
-        host: '0.peerjs.com',
-        port: 443,
-        path: '/',
-        secure: true,
-        debug: 1
-      };
-
       if (roomHostId) {
-        // SPECTATEUR : Masquage strict des contrôles et du menu
+        // MODE SPECTATEUR
         isSpectator = true;
         document.getElementById('inputSection').classList.add('hidden');
-        document.getElementById('burgerBtn').classList.add('hidden'); // Masque l'accès au menu
+        document.getElementById('burgerBtn').classList.add('hidden');
         document.getElementById('spectatorBanner').classList.remove('hidden');
         document.getElementById('firstDealerA').disabled = true;
         document.getElementById('firstDealerB').disabled = true;
         document.getElementById('undoBtn').classList.add('hidden');
 
-        peer = new Peer(peerOptions);
-        peer.on('open', () => {
-          const conn = peer.connect(roomHostId, { reliable: true });
-          
-          conn.on('open', () => {
-            // Reçoit les données en continu
-            conn.on('data', (data) => {
-              receiveGameState(data);
-            });
-          });
-        });
+        connectAsSpectator(roomHostId);
       } else {
-        // HÔTE (Gestionnaire du score)
-        peer = new Peer(peerOptions);
-        
-        peer.on('open', (id) => {
-          peerId = id;
-        });
-
-        peer.on('connection', (conn) => {
-          peerConnections.push(conn);
-          updatePeerBadge();
-
-          conn.on('open', () => {
-            conn.send(serializeState());
-          });
-
-          conn.on('close', () => {
-            peerConnections = peerConnections.filter(c => c !== conn);
-            updatePeerBadge();
-          });
-        });
+        // MODE HÔTE
+        initHostPeer();
       }
+    }
+
+    function initHostPeer() {
+      peer = new Peer();
+
+      peer.on('open', (id) => {
+        peerId = id;
+      });
+
+      peer.on('connection', (conn) => {
+        peerConnections.push(conn);
+        updatePeerBadge();
+
+        conn.on('open', () => {
+          conn.send(serializeState());
+        });
+
+        conn.on('close', () => {
+          peerConnections = peerConnections.filter(c => c !== conn);
+          updatePeerBadge();
+        });
+      });
+
+      peer.on('error', (err) => {
+        console.error("Erreur Hôte PeerJS:", err);
+      });
+    }
+
+    function connectAsSpectator(targetRoomId) {
+      document.getElementById('spectatorStatus').textContent = "Connexion en cours...";
+      
+      peer = new Peer();
+
+      peer.on('open', () => {
+        const conn = peer.connect(targetRoomId, { reliable: true });
+
+        conn.on('open', () => {
+          document.getElementById('spectatorStatus').textContent = "EN DIRECT";
+          conn.on('data', (data) => {
+            receiveGameState(data);
+          });
+        });
+
+        conn.on('close', () => {
+          document.getElementById('spectatorStatus').textContent = "Déconnecté";
+        });
+
+        conn.on('error', (err) => {
+          document.getElementById('spectatorStatus').textContent = "Erreur de connexion";
+        });
+      });
+
+      peer.on('error', (err) => {
+        document.getElementById('spectatorStatus').textContent = "Échec de connexion au serveur";
+      });
     }
 
     function serializeState() {
@@ -479,15 +498,19 @@
       badge.textContent = `${count} Spectateur${count > 1 ? 's' : ''}`;
     }
 
+    function getShareUrl() {
+      const baseUrl = window.location.origin + window.location.pathname;
+      return `${baseUrl}?room=${peerId}`;
+    }
+
     function showQRCodeModal() {
       toggleBurgerMenu();
       if (!peerId) {
-        showCustomModal("Connexion en cours, réessayez dans un instant...", false, "Connexion");
+        showCustomModal("Connexion au serveur en cours, réessayez dans 2 secondes...", false, "Connexion");
         return;
       }
 
-      const currentUrl = window.location.origin + window.location.pathname;
-      const shareUrl = `${currentUrl}?room=${peerId}`;
+      const shareUrl = getShareUrl();
 
       const qrContainer = document.getElementById('qrcode');
       qrContainer.innerHTML = '';
@@ -500,12 +523,24 @@
       document.getElementById('qrModal').classList.remove('hidden');
     }
 
+    function copyShareLink() {
+      if (!peerId) return;
+      const shareUrl = getShareUrl();
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        const btnCopyText = document.getElementById('btnCopyText');
+        btnCopyText.textContent = "Copié !";
+        setTimeout(() => {
+          btnCopyText.textContent = "Copier le lien";
+        }, 2000);
+      });
+    }
+
     function closeQRCodeModal() {
       document.getElementById('qrModal').classList.add('hidden');
     }
 
     function toggleBurgerMenu() {
-      if (isSpectator) return; // Bloqué pour le spectateur
+      if (isSpectator) return;
       document.getElementById('burgerDrawer').classList.toggle('hidden');
     }
 
